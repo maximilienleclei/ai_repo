@@ -1,9 +1,9 @@
 """Shapes:
 
-- BS: Batch size
-- TSL: Target sequence length
-- CNC: Number of channels for the conditioning data
-- CSL: Conditioning data sequence length
+BS: Batch size
+TSL: Target sequence length
+CNC: Number of channels for the conditioning data
+CSL: Conditioning data sequence length
 """
 
 import logging
@@ -16,10 +16,9 @@ from ema_pytorch import EMA
 from jaxtyping import Float
 from torch import Tensor
 
+from common.dl.litmodule.base import BaseLitModule, BaseLitModuleConfig
+from common.dl.litmodule.utils import to_wandb_image
 from common.utils.beartype import one_of
-
-from ...litmodule.base import BaseLitModule, BaseLitModuleConfig
-from .utils import to_wandb_image
 
 log = logging.getLogger(__name__)
 

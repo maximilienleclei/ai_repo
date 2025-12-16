@@ -20,21 +20,22 @@ conditioning signal.
 ---
 
 Shapes:
-- BS: Batch size
-- NV: Number of vectors
-- VS: Vector(s) size
-- IC: Number of input channels (unspecified source)
-- OC: Number of output channels (unspecified source)
-- SL: Sequence length (unspecified source)
-- TNC: Number of channels in the target data
-- MOC: Number of output channels in `DiT1D1D`
-- TSL: Sequence length of the target data
-- CNC: Number of channels in the conditioning data
-- CSL: Sequence length of the conditioning data
-- NP: Number of patches
-- PS: Patch size
-- ES: Embedding size
-- HS: Hidden size
+
+BS: Batch size
+NV: Number of vectors
+VS: Vector(s) size
+IC: Number of input channels (unspecified source)
+OC: Number of output channels (unspecified source)
+SL: Sequence length (unspecified source)
+TNC: Number of channels in the target data
+MOC: Number of output channels in `DiT1D1D`
+TSL: Sequence length of the target data
+CNC: Number of channels in the conditioning data
+CSL: Sequence length of the conditioning data
+NP: Number of patches
+PS: Patch size
+ES: Embedding size
+HS: Hidden size
 """
 
 import numpy as np
@@ -44,7 +45,7 @@ from jaxtyping import Float, Int
 from torch import Tensor, nn
 from x_transformers.x_transformers import AttentionLayers
 
-from .original_dit import (
+from common.dl.litmodule._nnmodule.cond_diffusion.original_dit import (
     DiTBlock,
     TimestepEmbedder,
     get_1d_sincos_pos_embed_from_grid,

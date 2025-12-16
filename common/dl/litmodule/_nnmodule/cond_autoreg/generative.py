@@ -1,16 +1,13 @@
 """Shapes:
-- BS: Batch size
-- SL: Sequence length
-- SLM1: Sequence length minus 1
-- NTF: Number of target features
-    (:paramref:`.BaseCAMConfig.num_target_features`)
-- NCF: Number of conditioning features
-    (:paramref:`.BaseCAMConfig.num_conditioning_features`)
-- NIF: Number of input features
-    (:attr:`.BaseCAM.num_input_features`)
-- NOL: Number of output logits
-    (:attr:`.BaseCAM.num_output_logits`)
-- NG: Number of gaussians (:paramref:`.CGAMConfig.num_gaussians`)
+
+BS: Batch size
+SL: Sequence length
+SLM1: Sequence length minus 1
+NTF: Number of target features
+NCF: Number of conditioning features
+NIF: Number of input features
+NOL: Number of output logits
+NG: Number of gaussians
 """
 
 from dataclasses import dataclass
@@ -23,7 +20,10 @@ from jaxtyping import Float, Int
 from torch import Tensor, nn
 from torch.distributions.normal import Normal
 
-from .base import BaseCAM, BaseCAMConfig
+from common.dl.litmodule._nnmodule.cond_autoreg.base import (
+    BaseCAM,
+    BaseCAMConfig,
+)
 
 
 @dataclass

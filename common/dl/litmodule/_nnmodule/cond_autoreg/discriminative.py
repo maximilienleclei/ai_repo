@@ -1,11 +1,12 @@
 """Shapes:
-- BS: Batch size
-- SL: Sequence length
-- SLM1: Sequence length minus 1
-- NTF: Number of target features
-- NCF: Number of conditioning features
-- NIF: Number of input features
-- NOL: Number of output logits
+
+BS: Batch size
+SL: Sequence length
+SLM1: Sequence length minus 1
+NTF: Number of target features
+NCF: Number of conditioning features
+NIF: Number of input features
+NOL: Number of output logits
 """
 
 import logging
@@ -14,7 +15,7 @@ import torch.nn.functional as f
 from jaxtyping import Float
 from torch import Tensor
 
-from .base import BaseCAM
+from common.dl.litmodule._nnmodule.cond_autoreg.base import BaseCAM
 
 log = logging.getLogger(__name__)
 

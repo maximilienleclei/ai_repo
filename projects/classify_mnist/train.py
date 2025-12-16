@@ -1,9 +1,15 @@
 from hydra_zen import ZenStore
-from common.dl.litmodule.classification import BaseClassificationLitModuleConfig
-from common.dl.runner import DeepLearningTaskRunner
-from utils.hydra_zen import generate_config
 
-from .datamodule import MNISTDataModule, MNISTDataModuleConfig
+from common.dl.litmodule.classification import (
+    BaseClassificationLitModuleConfig,
+)
+from common.dl.runner import DeepLearningTaskRunner
+from common.utils.hydra_zen import generate_config
+from projects.classify_mnist.datamodule import (
+    MNISTDataModule,
+    MNISTDataModuleConfig,
+)
+
 from .litmodule import MNISTClassificationLitModule
 
 

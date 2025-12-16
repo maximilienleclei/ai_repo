@@ -1,9 +1,9 @@
 """Shapes.
 
-- BS: Batch size
-- TSL: Target sequence length
-- HNC: Target signal number of channels (i.e. number of features)
-- CNC: Conditioning number of channels (i.e. number of features)
+BS: Batch size
+TSL: Target sequence length
+HNC: Target signal number of channels (i.e. number of features)
+CNC: Conditioning number of channels (i.e. number of features)
 """
 
 import logging
@@ -18,14 +18,13 @@ from einops import rearrange
 from jaxtyping import Float
 from torch import Tensor
 
-from common.utils.beartype import one_of
-
-from .._nnmodule.autoregression.base import BaseCAM
-from ..utils import to_wandb_image
-from .base import (
+from common.dl.litmodule._nnmodule.cond_autoreg.base import BaseCAM
+from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,
 )
+from common.dl.litmodule.utils import to_wandb_image
+from common.utils.beartype import one_of
 
 log = logging.getLogger(__name__)
 

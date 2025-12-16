@@ -1,13 +1,13 @@
-from autoregression import (
+from hydra_zen import ZenStore
+
+from common.dl.litmodule.cond1d_target1d.autoregression import (
     Cond1DTarget1DAutoregressionLitModule,
     Cond1DTarget1DAutoregressionLitModuleConfig,
 )
-from diffusion import (
+from common.dl.litmodule.cond1d_target1d.diffusion import (
     Cond1DTarget1DDiffusionLitModule,
     Cond1DTarget1DDiffusionLitModuleConfig,
 )
-from hydra_zen import ZenStore
-
 from common.utils.hydra_zen import generate_config
 
 

@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from datamodule.base import BaseDataModule, BaseDataModuleConfig
 from hydra_zen import make_config
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers.wandb import WandbLogger
-from litmodule.base import BaseLitModule
-from utils.hydra_zen import generate_config, generate_config_partial
 
-from ..config import BaseSubtaskConfig
+from common.config import BaseSubtaskConfig
+from common.dl.datamodule.base import BaseDataModule, BaseDataModuleConfig
+from common.dl.litmodule.base import BaseLitModule
+from common.utils.hydra_zen import generate_config, generate_config_partial
 
 
 @dataclass

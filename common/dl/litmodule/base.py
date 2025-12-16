@@ -11,7 +11,8 @@ from lightning.pytorch import LightningModule
 from torch import Tensor, nn
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
-from utils.beartype import ge, one_of
+
+from common.utils.beartype import ge, one_of
 
 
 @dataclass

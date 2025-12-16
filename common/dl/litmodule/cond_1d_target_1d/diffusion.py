@@ -1,10 +1,10 @@
 """Shapes.
 
-- BS: Batch size
-- TSL: Cond1DTarget1D sequence length
-- HNC: Cond1DTarget1D number of channels
-- CSL: Conditioning sequence length
-- CNC: Conditioning number of channels (i.e. number of features)
+BS: Batch size
+TSL: Cond1DTarget1D sequence length
+HNC: Cond1DTarget1D number of channels
+CSL: Conditioning sequence length
+CNC: Conditioning number of channels (i.e. number of features)
 """
 
 import contextlib
@@ -16,16 +16,15 @@ from typing import Any
 import torch
 from jaxtyping import Float, Int
 from torch import Tensor
+from utils.diffusion import create_diffusion
 
-from common.utils.beartype import one_of
-from projects.Cond1DTarget1D_pred.utils.dit.diffusion import create_diffusion
-
-from .base import (
+from common.dl.litmodule._nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
+from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,
 )
-from .nnmodule.diffusion.dit_1d_1d import DiT1D1D
-from .utils import to_wandb_image
+from common.dl.litmodule.utils import to_wandb_image
+from common.utils.beartype import one_of
 
 log = logging.getLogger(__name__)
 

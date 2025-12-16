@@ -1,9 +1,9 @@
 """Shapes.
 
-- TSL: Target sequence length
-- CSL: Conditioning sequence length
-- TNC: Target number of channels
-- CNC: Conditioning number of channels (i.e. number of features)
+TSL: Target sequence length
+CSL: Conditioning sequence length
+TNC: Target number of channels
+CNC: Conditioning number of channels (i.e. number of features)
 """
 
 import logging

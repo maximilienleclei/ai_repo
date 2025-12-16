@@ -10,8 +10,8 @@ from jaxtyping import Float, Int
 from torch import Tensor
 from torchmetrics.classification import MulticlassAccuracy
 
-from base import BaseLitModule, BaseLitModuleConfig
-from utils.beartype import ge, one_of
+from common.dl.litmodule.base import BaseLitModule, BaseLitModuleConfig
+from common.utils.beartype import ge, one_of
 
 
 @dataclass

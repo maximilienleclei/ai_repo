@@ -1,18 +1,14 @@
-"""Deep Learning `Hydra <https://hydra.cc>`_ config store."""
-
 from hydra_zen import ZenStore
 from lightning.pytorch import Trainer
 from utils.hydra_zen import generate_config_partial
 
+from common.dl.config import DeepLearningTaskConfig
+from common.dl.litmodule.store import store_configs as store_litmodule_configs
 
-def store_basic_trainer_config(store: ZenStore) -> None:
-    """Stores `Hydra <https://hydra.cc>`_ ``trainer`` group configs.
 
-    Config name: ``base``.
-
-    Args:
-        store: See :paramref:`~.BaseTaskRunner.store_configs.store`.
-    """
+def store_configs(store: ZenStore) -> None:
+    store(DeepLearningTaskConfig, name="config")
+    store_litmodule_configs(store)
     store(
         generate_config_partial(
             Trainer,

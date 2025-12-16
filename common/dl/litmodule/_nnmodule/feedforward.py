@@ -1,7 +1,8 @@
 """Shapes:
-- BS: Batch size
-- NIF: Number of input features
-- NOF: Number of output features
+
+BS: Batch size
+NIF: Number of input features
+NOF: Number of output features
 """
 
 import logging

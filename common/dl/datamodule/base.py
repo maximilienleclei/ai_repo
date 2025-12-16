@@ -10,7 +10,7 @@ from lightning.pytorch import LightningDataModule
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 
-from utils.beartype import ge, not_empty, one_of
+from common.utils.beartype import ge, not_empty, one_of
 
 
 @dataclass
@@ -28,6 +28,7 @@ class BaseDataModuleConfig:
     data_dir: An[str, not_empty()] = "${config.data_dir}"
     device: An[str, one_of("cpu", "gpu")] = "${config.device}"
     max_per_device_batch_size: An[int, ge(1)] | None = None
+    max_per_device_num_workers: An[int, ge(0)] | None = None
     fixed_per_device_batch_size: An[int, ge(1)] | None = None
     fixed_per_device_num_workers: An[int, ge(0)] | None = None
     shuffle_train_dataset: bool = True

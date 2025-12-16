@@ -47,7 +47,7 @@ class BaseTaskRunner(ABC):
     @classmethod
     @abstractmethod
     def store_configs(cls: type["BaseTaskRunner"], store: ZenStore) -> None:
-        store_launcher_configs(store)
+        store_configs(store)
 
     @staticmethod
     @abstractmethod

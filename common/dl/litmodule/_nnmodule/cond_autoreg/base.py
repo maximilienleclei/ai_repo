@@ -1,13 +1,13 @@
 """Shapes:
 
-- BS: Batch size
-- SL: Sequence length
-- SLM1: Sequence length minus 1
-- NTF: Number of target features
-- NCF: Number of conditioning features
-- NIF: Number of input features
-- NOL: Number of output logits
-- HS: Hidden size
+BS: Batch size
+SL: Sequence length
+SLM1: Sequence length minus 1
+NTF: Number of target features
+NCF: Number of conditioning features
+NIF: Number of input features
+NOL: Number of output logits
+HS: Hidden size
 """
 
 import logging
@@ -18,14 +18,15 @@ from typing import Annotated as An
 
 import torch
 from einops import rearrange
-from feedforward import FNN, FNNConfig
 from jaxtyping import Float
-from mamba2 import Mamba2
 from mambapy.mamba import Mamba, MambaConfig
 from mambapy.mamba2 import Mamba2Config
 from torch import Tensor, nn
 from torch.nn import LSTM, RNN
-from utils.beartype import ge, one_of
+
+from common.dl.litmodule._nnmodule.feedforward import FNN, FNNConfig
+from common.dl.litmodule._nnmodule.mamba2 import Mamba2
+from common.utils.beartype import ge, one_of
 
 log = logging.getLogger(__name__)
 

@@ -1,13 +1,13 @@
 from base import BaseCAMConfig
 from discriminative import CDAM
-from feedforward import FNNConfig
 from generative import CGAM, CGAMConfig
 from hydra_zen import ZenStore
 from mambapy.mamba import MambaConfig
 from mambapy.mamba2 import Mamba2Config
 from torch.nn import LSTM, RNN
-
 from utils.hydra_zen import generate_config, generate_config_partial
+
+from common.dl.litmodule._nnmodule.feedforward import FNNConfig
 
 
 def store_configs(store: ZenStore) -> None:
