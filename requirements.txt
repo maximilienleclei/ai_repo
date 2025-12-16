@@ -1,0 +1,29 @@
+# Python Version: ~=3.12.0
+
+# --- Torch Stack (Handled in Dockerfile) ---
+# torch
+# torchvision
+# torchaudio
+# triton
+# pytorch-triton-rocm
+
+# --- Dependencies ---
+hydra-core                        # Configuration management
+hydra-zen                         # Cleaner Hydra configs
+lightning                         # PyTorch wrapper to decrease boilerplate
+ordered-set                       # Sets w/ deterministic order (for dynamic nets)
+wandb                             # Logging
+beartype                          # Dynamic type checking
+jaxtyping                         # Torch tensor annotations
+einops                            # Makes shape transformations more readable
+datasets                          # Datasets published on Hugging Face
+gymnasium[classic-control,box2d]  # RL/IL environments
+torchrl                           # RL/IL
+packaging                         # Build Mamba from source
+
+# --- Git Dependencies ---
+# Launcher config
+hydra-submitit-launcher @ git+https://github.com/maximilienleclei/hydra#subdirectory=plugins/hydra_submitit_launcher/
+
+# Mamba wrapper
+mambapy @ git+https://github.com/alxndrTL/mamba.py

@@ -1,42 +1,24 @@
 {
-    "image": "docker.io/mleclei/ai_research:cpu",
+    "image": "maximilienleclei/ai-research:cpu_latest",
     "customizations": {
       "vscode": {
         "extensions": [
           "ms-python.python",
           "ms-python.black-formatter",
-          "charliermarsh.ruff",
-          "lextudio.restructuredtext@189.3.0",
-          "fnando.linter",
+          "ms-python.isort",
           "tamasfe.even-better-toml",
-          "ms-toolsai.jupyter",
-          "matangover.mypy"
+          "yzhang.markdown-all-in-one"
         ],
         "settings": {
           "black-formatter.args": [
-              "--config=pyproject.toml"
+              "--line-length",
+              "79"
           ],
-          "esbonio.sphinx.buildDir": "${workspaceFolder}/docs/_build/html",
-          "esbonio.sphinx.confDir": "${workspaceFolder}/docs/",
-          "esbonio.server.hideSphinxOutput": true,
-          "esbonio.server.pythonPath": "/usr/bin/python",
-          "esbonio.sphinx.srcDir": "${workspaceFolder}/docs/",
           "files.insertFinalNewline": true,
           "files.trimTrailingWhitespace": true,
           "git.allowNoVerifyCommit": true,
-          "mypy.configFile": "pyproject.toml",
-          "notebook.formatOnSave.enabled": true,
-          "notebook.codeActionsOnSave": {
-            "notebook.source.organizeImports": "explicit"
-          },
           "python.analysis.ignore": [
               "/**"
-          ],
-          "restructuredtext.linter.doc8.executablePath": "/usr/local/bin/doc8",
-          "restructuredtext.preview.sphinx.disabled": true,
-          "restructuredtext.syntaxHighlighting.disabled": true,
-          "ruff.lint.arg": [
-              "--config=pyproject.toml"
           ],
           "[python]": {
               "editor.defaultFormatter": "ms-python.black-formatter",
@@ -51,6 +33,5 @@
     "containerEnv": {
       "PYTHONPATH": "/workspaces/ai_research",
       "AI_RESEARCH_PATH": "/workspaces/ai_research"
-    },
-    "postAttachCommand": "pre-commit install"
+    }
   }
