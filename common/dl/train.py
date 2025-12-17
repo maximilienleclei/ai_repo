@@ -30,7 +30,7 @@ def train(
         logger_partial=logger,
         device=config.device,
         output_dir=config.output_dir,
-        save_every_n_train_steps=config.save_every_n_train_steps,
+        save_every_n_minutes=config.save_every_n_minutes,
     )
     """TODO: Add logic for HPO"""
     set_batch_size_and_num_workers(

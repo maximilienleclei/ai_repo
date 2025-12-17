@@ -14,7 +14,7 @@ from common.utils.hydra_zen import generate_config, generate_config_partial
 @dataclass
 class DeepLearningSubtaskConfig(BaseSubtaskConfig):
     compile: bool = False
-    save_every_n_train_steps: int | None = 1
+    save_every_n_minutes: int | None = 5
     ckpt_path: str | None = "last"
 
 

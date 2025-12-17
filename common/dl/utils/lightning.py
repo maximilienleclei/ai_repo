@@ -5,6 +5,7 @@ import math
 import os
 import sys
 import time
+from datetime import timedelta
 from functools import partial
 from typing import Annotated as An
 from typing import Any
@@ -34,7 +35,7 @@ def instantiate_trainer(
     logger_partial: partial[WandbLogger],
     device: An[str, one_of("cpu", "gpu")],
     output_dir: str,
-    save_every_n_train_steps: int | None,
+    save_every_n_minutes: int | None,
 ) -> Trainer:
     launcher_config = get_launcher_config()
     # Retrieve the `Trainer` callbacks specified in the config
@@ -53,7 +54,7 @@ def instantiate_trainer(
             monitor="val/loss",
             save_last=True,
             save_top_k=1,
-            every_n_train_steps=save_every_n_train_steps,
+            train_time_interval=timedelta(minutes=save_every_n_minutes) if save_every_n_minutes else None,
         ),
     )
     # Instantiate the :class:`WandbLogger`.`
