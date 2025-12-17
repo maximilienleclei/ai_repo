@@ -38,14 +38,8 @@ class DynamicNets(BaseNets):
         self.have_mutated = True
         self.prepare_for_computation()
 
-    def __call__(
-        self,
-        x: Float[Tensor, "NN NI"],
-        mem: Float[Tensor, "TNNplus1 5"] | None = None
-    ) -> tuple[Float[Tensor, "NN NO"], Float[Tensor, "TNNplus1 5"]]:
+    def __call__(self, x: Float[Tensor, "NN NI"]) -> Float[Tensor, "NN NO"]:
         """Forward pass through the network population."""
-
-        # TODO (Step 3): Currently ignores mem parameter. Need to restore wrs.n_mean_m2_x_z from mem if provided.
 
         log.debug("13. obs")
         log.debug(x)
@@ -116,7 +110,7 @@ class DynamicNets(BaseNets):
         log.debug(output)
         log.debug(output.shape)
 
-        return output, self.wrs.n_mean_m2_x_z.clone()
+        return output
 
     def update_nets_standardization_values(self) -> None:
         """Update each net's n_mean_m2_x_z from the batched tensor."""
