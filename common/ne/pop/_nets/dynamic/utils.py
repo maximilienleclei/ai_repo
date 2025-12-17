@@ -3,22 +3,23 @@
 TNN: Total number of nodes (in all networks).
 """
 
+import logging
+
 import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
+
+log = logging.getLogger(__name__)
 
 
 class WelfordRunningStandardizer:
     def __init__(
         self: "WelfordRunningStandardizer",
         n_mean_m2_x_z: Float[Tensor, "TNNplus1 5"],
-        verbose: bool = False,
     ):
         self.n_mean_m2_x_z: Float[Tensor, "TNNplus1 5"] = n_mean_m2_x_z
-        self.verbose = verbose
-        if verbose:
-            print("a. Initial n_mean_m2_x_z")
-            print(n_mean_m2_x_z)
+        log.debug("a. Initial n_mean_m2_x_z")
+        log.debug(n_mean_m2_x_z)
 
     def __call__(
         self: "WelfordRunningStandardizer",
@@ -48,15 +49,14 @@ class WelfordRunningStandardizer:
             (x_or_z != 0) & (x_or_z != prev_x) & (x_or_z != prev_z)
         )
 
-        if self.verbose:
-            print("b. x_or_z (input)")
-            print(x_or_z)
-            print("c. prev_x (previous raw output)")
-            print(prev_x)
-            print("c. prev_z (previous z-score output)")
-            print(prev_z)
-            print("d. update_mask (update=True)")
-            print(update_mask)
+        log.debug("b. x_or_z (input)")
+        log.debug(x_or_z)
+        log.debug("c. prev_x (previous raw output)")
+        log.debug(prev_x)
+        log.debug("c. prev_z (previous z-score output)")
+        log.debug(prev_z)
+        log.debug("d. update_mask (update=True)")
+        log.debug(update_mask)
 
         # 3. Calculate potential new values for the stats from `x_or_z`.
         n_potential = prev_n + 1.0
@@ -87,16 +87,14 @@ class WelfordRunningStandardizer:
         z_score_output: Float[Tensor, "TNNplus1"] = torch.where(
             is_valid, raw_z_score, torch.tensor(0.0)
         )
-        if self.verbose:
-            print("e. z_score_output")
-            print(z_score_output)
+        log.debug("e. z_score_output")
+        log.debug(z_score_output)
 
         pass_through_mask: Bool[Tensor, "TNNplus1"] = (x_or_z == 0) | (
             x_or_z == prev_z
         )
-        if self.verbose:
-            print("f. pass_through_mask")
-            print(pass_through_mask)
+        log.debug("f. pass_through_mask")
+        log.debug(pass_through_mask)
 
         # 6. Determine the final output.
         final_output: Float[Tensor, "TNNplus1"] = torch.where(
@@ -107,9 +105,8 @@ class WelfordRunningStandardizer:
         self.n_mean_m2_x_z[:, 3] = torch.where(update_mask, x_or_z, prev_x)
         self.n_mean_m2_x_z[:, 4] = final_output
 
-        if self.verbose:
-            print("g. Final n_mean_m2_x_z (state)")
-            print(self.n_mean_m2_x_z)
+        log.debug("g. Final n_mean_m2_x_z (state)")
+        log.debug(self.n_mean_m2_x_z)
 
         # 8. Return the final, processed tensor
         return final_output.clone()
