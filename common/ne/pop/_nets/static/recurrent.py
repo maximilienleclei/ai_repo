@@ -17,14 +17,15 @@ class RecurrentStaticNets(BaseStaticNets):
 
     def __init__(self, config: StaticNetsConfig):
         self.config: StaticNetsConfig = config
+        layer_dims: list[int] = [config.num_inputs] + config.hidden_layer_sizes + [config.num_outputs]
         self.W_ih_weights: list[Float[Tensor, "NN LiOD LiID"]] = []
         self.W_ih_biases: list[Float[Tensor, "NN 1 LiOD"]] = []
         self.W_hh_weights: list[Float[Tensor, "NN LiOD LiOD"]] = []
         self.W_hh_biases: list[Float[Tensor, "NN 1 LiOD"]] = []
-        self.num_layers: int = len(self.config.layer_dims) - 1
+        self.num_layers: int = len(layer_dims) - 1
         for j in range(self.num_layers):
-            layer_j_in_dim: int = self.config.layer_dims[j]
-            layer_j_out_dim: int = self.config.layer_dims[j + 1]
+            layer_j_in_dim: int = layer_dims[j]
+            layer_j_out_dim: int = layer_dims[j + 1]
             layer_j_ih_std: float = (1.0 / layer_j_in_dim) ** 0.5
             layer_j_hh_std: float = (1.0 / layer_j_out_dim) ** 0.5
             layer_j_W_ih: Float[Tensor, "NN LiOD LiID"] = torch.randn(self.config.num_nets, layer_j_out_dim, layer_j_in_dim) * layer_j_ih_std
@@ -72,9 +73,10 @@ class RecurrentStaticNets(BaseStaticNets):
             self.W_hh_biases[j]: Float[Tensor, "NN 1 LiOD"] = self.W_hh_biases[j] + torch.randn_like(self.W_hh_biases[j]) * layer_j_b_hh_sigma
 
     def __call__(self, x: Float[Tensor, "NN BS ID"]) -> Float[Tensor, "NN BS OD"]:
+        layer_dims: list[int] = [self.config.num_inputs] + self.config.hidden_layer_sizes + [self.config.num_outputs]
         hidden_states: list[Float[Tensor, "NN BS LiOD"]] = []
         for j in range(self.num_layers):
-            layer_j_out_dim: int = self.config.layer_dims[j + 1]
+            layer_j_out_dim: int = layer_dims[j + 1]
             layer_j_h: Float[Tensor, "NN BS LiOD"] = torch.zeros(self.config.num_nets, x.shape[1], layer_j_out_dim)
             hidden_states.append(layer_j_h)
         layer_input: Float[Tensor, "NN BS dim"] = x

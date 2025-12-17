@@ -17,12 +17,13 @@ class FeedforwardStaticNets(BaseStaticNets):
 
     def __init__(self, config: StaticNetsConfig):
         self.config: StaticNetsConfig = config
+        layer_dims: list[int] = [config.num_inputs] + config.hidden_layer_sizes + [config.num_outputs]
         self.weights: list[Float[Tensor, "NN LiID LiOD"]] = []
         self.biases: list[Float[Tensor, "NN 1 LiOD"]] = []
-        self.num_layers: int = len(self.config.layer_dims) - 1
+        self.num_layers: int = len(layer_dims) - 1
         for j in range(self.num_layers):
-            layer_j_in_dim: int = self.config.layer_dims[j]
-            layer_j_out_dim: int = self.config.layer_dims[j + 1]
+            layer_j_in_dim: int = layer_dims[j]
+            layer_j_out_dim: int = layer_dims[j + 1]
             layer_j_std: float = (1.0 / layer_j_in_dim) ** 0.5
             layer_j_weight: Float[Tensor, "NN LiID LiOD"] = torch.randn(self.config.num_nets, layer_j_in_dim, layer_j_out_dim) * layer_j_std
             layer_j_bias: Float[Tensor, "NN 1 LiOD"] = torch.randn(self.config.num_nets, 1, layer_j_out_dim) * layer_j_std

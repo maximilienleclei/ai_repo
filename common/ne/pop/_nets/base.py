@@ -5,6 +5,8 @@ import torch
 @dataclass
 class BaseNetsConfig:
     num_nets: int
+    num_inputs: int
+    num_outputs: int
 
 class BaseNets(ABC):
 
