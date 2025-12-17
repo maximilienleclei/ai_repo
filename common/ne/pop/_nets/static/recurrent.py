@@ -1,5 +1,5 @@
 import torch
-from common.ne.pop.nets.static.base import BaseStaticNets, StaticNetsConfig
+from common.ne.pop._nets.static.base import BaseStaticNets, StaticNetsConfig
 
 class RecurrentStaticNets(BaseStaticNets):
 

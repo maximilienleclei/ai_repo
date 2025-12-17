@@ -26,6 +26,7 @@ class BaseSubtaskConfig:
     data_dir: An[str, not_empty()] = "${oc.env:AI_RESEARCH_PATH}/data/"
     device: An[str, one_of("cpu", "gpu")] = "cpu"
     seed: An[int, ge(0)] = 0
+    save_every_n_minutes: int | None = 5
 
 
 @dataclass

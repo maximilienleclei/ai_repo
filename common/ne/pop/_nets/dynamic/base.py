@@ -1,5 +1,5 @@
 import torch
-from common.ne.pop.nets.base import BaseNets, BaseNetsConfig
+from common.ne.pop._nets.base import BaseNets, BaseNetsConfig
 
 class DynamicNets(BaseNets):
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import torch
-from common.ne.pop.nets.base import BaseNets, BaseNetsConfig
+from common.ne.pop._nets.base import BaseNets, BaseNetsConfig
 
 @dataclass
 class StaticNetsConfig(BaseNetsConfig):
