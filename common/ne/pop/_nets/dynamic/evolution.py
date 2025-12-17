@@ -9,10 +9,11 @@ altered during network evolution.
 Network computation is to occur through population-wide operations and are
 thus not implemented here.
 
-Acronyms:
-`NMN` : Number of mutable (hidden and output) nodes.
-`NON` : Number of output nodes.
- `NN` : Number of nodes.
+Shapes:
+
+NMN: Number of mutable (hidden and output) nodes.
+NON: Number of output nodes.
+NN: Number of nodes.
 """
 
 import random
@@ -25,6 +26,7 @@ import torch
 from jaxtyping import Float, Int
 from ordered_set import OrderedSet
 from torch import Tensor
+
 from common.utils.beartype import ge, le, one_of
 
 
@@ -128,7 +130,9 @@ class Node:
                 local_connectivity_probability > random.random()
                 and nodes_considered_at_distance_i
             ) or nodes_within_distance_i == nodes_considered:
-                nearby_node: Node = random.choice(nodes_considered_at_distance_i)
+                nearby_node: Node = random.choice(
+                    nodes_considered_at_distance_i
+                )
                 node_found: bool = True
             else:
                 # Expand the search to nodes within distance of i+1.
@@ -223,7 +227,9 @@ class Net:
         # `n`, `mean` and `m2` are used for the Welford running
         # standardization. `x` and `z` are the node's raw and standardized
         # computed outputs respectively
-        self.n_mean_m2_x_z: Float[Tensor, "NN 5"] = torch.zeros((0, 5), device=self.device)
+        self.n_mean_m2_x_z: Float[Tensor, "NN 5"] = torch.zeros(
+            (0, 5), device=self.device
+        )
         # A mutable value that controls the average number of chained
         # `grow_node` mutations to perform per mutation call.
         self.avg_num_grow_mutations: An[float, ge(0)] = 1.0
@@ -267,13 +273,20 @@ class Net:
         elif role == "output":
             self.nodes.output.append(new_node)
         else:  # role == "hidden"
-            receiving_nodes_set: OrderedSet[Node] = OrderedSet(self.nodes.receiving)
+            receiving_nodes_set: OrderedSet[Node] = OrderedSet(
+                self.nodes.receiving
+            )
             non_emitting_input_nodes: OrderedSet[Node] = OrderedSet(
                 self.nodes.input
-            ) - (OrderedSet(self.nodes.input) & OrderedSet(self.nodes.emitting))
+            ) - (
+                OrderedSet(self.nodes.input) & OrderedSet(self.nodes.emitting)
+            )
             non_receiving_output_nodes: OrderedSet[Node] = OrderedSet(
                 self.nodes.output
-            ) - (OrderedSet(self.nodes.output) & OrderedSet(self.nodes.receiving))
+            ) - (
+                OrderedSet(self.nodes.output)
+                & OrderedSet(self.nodes.receiving)
+            )
             # 1) `in_node_1' → `new_node`
             if not in_node_1:
                 # First focus on connecting input nodes to the rest of the
@@ -305,7 +318,9 @@ class Net:
                     non_receiving_output_nodes.copy()
                 )
             else:
-                nodes_considered_for_out_node_1: OrderedSet[Node] = OrderedSet()
+                nodes_considered_for_out_node_1: OrderedSet[Node] = (
+                    OrderedSet()
+                )
                 for node in self.nodes.hidden + self.nodes.output:
                     if len(node.in_nodes) < 3:
                         nodes_considered_for_out_node_1.add(node)
@@ -317,7 +332,9 @@ class Net:
             self.nodes.hidden.append(new_node)
         if role in ["hidden", "output"]:
             self.weights_list.append(new_node.weights)
-        self.n_mean_m2_x_z = torch.cat((self.n_mean_m2_x_z, torch.zeros((1, 5), device=self.device)))
+        self.n_mean_m2_x_z = torch.cat(
+            (self.n_mean_m2_x_z, torch.zeros((1, 5), device=self.device))
+        )
         self.total_num_nodes_grown += 1
         return new_node
 
@@ -413,17 +430,25 @@ class Net:
         # `prune_node`
         rand_val: An[float, ge(0), le(1)] = float(torch.rand(1))
         if (self.avg_num_prune_mutations % 1) < rand_val:
-            num_prune_mutations: An[int, ge(0)] = int(self.avg_num_prune_mutations)
+            num_prune_mutations: An[int, ge(0)] = int(
+                self.avg_num_prune_mutations
+            )
         else:
-            num_prune_mutations: An[int, ge(1)] = int(self.avg_num_prune_mutations) + 1
+            num_prune_mutations: An[int, ge(1)] = (
+                int(self.avg_num_prune_mutations) + 1
+            )
         for _ in range(num_prune_mutations):
             self.prune_node()
         # `grow_node`
         rand_val: An[float, ge(0), le(1)] = float(torch.rand(1))
         if (self.avg_num_grow_mutations % 1) < rand_val:
-            num_grow_mutations: An[int, ge(0)] = int(self.avg_num_grow_mutations)
+            num_grow_mutations: An[int, ge(0)] = int(
+                self.avg_num_grow_mutations
+            )
         else:
-            num_grow_mutations: An[int, ge(1)] = int(self.avg_num_grow_mutations) + 1
+            num_grow_mutations: An[int, ge(1)] = (
+                int(self.avg_num_grow_mutations) + 1
+            )
         starting_node = None
         for _ in range(num_grow_mutations):
             # Chained `grow_node` mutations re-use the previously created
@@ -463,8 +488,12 @@ class Net:
         new_net.total_num_nodes_grown = self.total_num_nodes_grown
         new_net.avg_num_grow_mutations = self.avg_num_grow_mutations
         new_net.avg_num_prune_mutations = self.avg_num_prune_mutations
-        new_net.num_network_passes_per_input = self.num_network_passes_per_input
-        new_net.local_connectivity_probability = self.local_connectivity_probability
+        new_net.num_network_passes_per_input = (
+            self.num_network_passes_per_input
+        )
+        new_net.local_connectivity_probability = (
+            self.local_connectivity_probability
+        )
 
         # Deep copy node structure (still need deepcopy for graph structure)
         # This is unavoidable for connected graph - but localized to one method
@@ -502,7 +531,9 @@ class Net:
             if node.role != "input":
                 node_state["weights"] = node.weights.copy()
                 # Save connections by immutable_uid (stable across mutations)
-                node_state["in_node_uids"] = [n.immutable_uid for n in node.in_nodes]
+                node_state["in_node_uids"] = [
+                    n.immutable_uid for n in node.in_nodes
+                ]
             node_states.append(node_state)
 
         return {
@@ -533,8 +564,12 @@ class Net:
         self.total_num_nodes_grown = state["total_num_nodes_grown"]
         self.avg_num_grow_mutations = state["avg_num_grow_mutations"]
         self.avg_num_prune_mutations = state["avg_num_prune_mutations"]
-        self.num_network_passes_per_input = state["num_network_passes_per_input"]
-        self.local_connectivity_probability = state["local_connectivity_probability"]
+        self.num_network_passes_per_input = state[
+            "num_network_passes_per_input"
+        ]
+        self.local_connectivity_probability = state[
+            "local_connectivity_probability"
+        ]
 
         # Restore tensors
         self.n_mean_m2_x_z = state["n_mean_m2_x_z"].to(self.device)

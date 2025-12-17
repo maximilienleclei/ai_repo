@@ -1,3 +1,12 @@
+"""Shapes:
+
+TNN: Total number of nodes (in all networks).
+TNMN: Total number of mutable (hidden and output) nodes (in all networks).
+NN: Number of networks
+NO: Number of outputs (per network)
+NI: Number of inputs (per network)
+"""
+
 import logging
 
 import torch
@@ -5,9 +14,8 @@ from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
 from common.ne.pop._nets.base import BaseNets, BaseNetsConfig
-
-from .evolution import Net
-from .utils import WelfordRunningStandardizer
+from common.ne.pop._nets.dynamic.evolution import Net
+from common.ne.pop._nets.dynamic.utils import WelfordRunningStandardizer
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +32,7 @@ class DynamicNets(BaseNets):
 
     def _build_computation_tensors(self) -> None:
         """Build all tensors needed for batched computation."""
-        nets_num_nodes: Int[Tensor, "POPULATION_SIZE"] = torch.tensor(
+        nets_num_nodes: Int[Tensor, "NN"] = torch.tensor(
             [len(net.nodes.all) for net in self.nets]
         )
         log.debug("1. nets_num_nodes")
@@ -40,7 +48,7 @@ class DynamicNets(BaseNets):
         log.debug(n_mean_m2_x_z)
         log.debug(n_mean_m2_x_z.shape)
 
-        self.input_nodes_start_indices: Int[Tensor, "POPULATION_SIZE"] = (
+        self.input_nodes_start_indices: Int[Tensor, "NN"] = (
             torch.cat(
                 (torch.tensor([0]), torch.cumsum(nets_num_nodes[:-1], dim=0))
             )
@@ -49,22 +57,20 @@ class DynamicNets(BaseNets):
         log.debug("4. input_nodes_start_indices")
         log.debug(self.input_nodes_start_indices)
 
-        self.input_nodes_indices: Int[Tensor, "NUM_INPUTSxPOPULATION_SIZE"] = (
+        self.input_nodes_indices: Int[Tensor, "NIxNN"] = (
             self.input_nodes_start_indices.unsqueeze(1)
             + torch.arange(self.config.num_inputs)
         ).flatten()
         log.debug("5. input_nodes_indices")
         log.debug(self.input_nodes_indices)
 
-        output_nodes_start_indices: Int[Tensor, "POPULATION_SIZE"] = (
+        output_nodes_start_indices: Int[Tensor, "NN"] = (
             self.input_nodes_start_indices + self.config.num_inputs
         )
         log.debug("6. output_nodes_start_indices")
         log.debug(output_nodes_start_indices)
 
-        self.output_nodes_indices: Int[
-            Tensor, "NUM_OUTPUTSxPOPULATION_SIZE"
-        ] = (
+        self.output_nodes_indices: Int[Tensor, "NOxNN"] = (
             output_nodes_start_indices.unsqueeze(1)
             + torch.arange(self.config.num_outputs)
         ).flatten()
@@ -116,10 +122,8 @@ class DynamicNets(BaseNets):
         log.debug(self.weights)
         log.debug(self.weights.shape)
 
-        num_network_passes_per_input: Int[Tensor, "POPULATION_SIZE"] = (
-            torch.tensor(
-                [net.num_network_passes_per_input for net in self.nets]
-            )
+        num_network_passes_per_input: Int[Tensor, "NN"] = torch.tensor(
+            [net.num_network_passes_per_input for net in self.nets]
         )
         self.max_num_network_passes_per_input: int = max(
             num_network_passes_per_input
@@ -146,16 +150,14 @@ class DynamicNets(BaseNets):
         log.debug(self.num_network_passes_per_input_mask)
         log.debug(self.num_network_passes_per_input_mask.shape)
 
-    def __call__(
-        self, x: Float[Tensor, "POPULATION_SIZE NUM_INPUTS"]
-    ) -> Float[Tensor, "POPULATION_SIZE NUM_OUTPUTS"]:
+    def __call__(self, x: Float[Tensor, "NN NI"]) -> Float[Tensor, "NN NO"]:
         """Forward pass through the network population."""
 
         log.debug("13. obs")
         log.debug(x)
         log.debug(x.shape)
 
-        flat_obs: Float[Tensor, "POPULATION_SIZExNUM_INPUTS"] = x.flatten()
+        flat_obs: Float[Tensor, "NNxNI"] = x.flatten()
         log.debug("14. flat_obs")
         log.debug(flat_obs)
         log.debug(flat_obs.shape)
@@ -213,14 +215,14 @@ class DynamicNets(BaseNets):
             log.debug(out)
             log.debug(out.shape)
 
-        actions: Float[Tensor, "POPULATION_SIZE NUM_OUTPUTS"] = out[
+        output: Float[Tensor, "NN NO"] = out[
             self.output_nodes_indices
         ].reshape(self.config.num_nets, self.config.num_outputs)
-        log.debug("22. actions")
-        log.debug(actions)
-        log.debug(actions.shape)
+        log.debug("22. output")
+        log.debug(output)
+        log.debug(output.shape)
 
-        return actions
+        return output
 
     def mutate(self) -> None:
         """Mutate all networks in the population."""
