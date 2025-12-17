@@ -51,10 +51,10 @@ class FeedforwardStaticNets(BaseStaticNets):
             self.weights[j]: Float[Tensor, "NN LiIS LiOS"] = self.weights[j] + torch.randn_like(self.weights[j]) * layer_j_weight_sigma
             self.biases[j]: Float[Tensor, "NN 1 LiOS"] = self.biases[j] + torch.randn_like(self.biases[j]) * layer_j_bias_sigma
 
-    def __call__(self, x: Float[Tensor, "NN BS NI"]) -> Float[Tensor, "NN BS NO"]:
+    def __call__(self, x: Float[Tensor, "NN BS NI"], mem: None = None) -> tuple[Float[Tensor, "NN BS NO"], None]:
         for j in range(self.num_layers):
             x: Float[Tensor, "NN BS LiOS"] = torch.bmm(x, self.weights[j])
             x: Float[Tensor, "NN BS LiOS"] = x + self.biases[j]
             if j < self.num_layers - 1:
                 x: Float[Tensor, "NN BS LiOS"] = torch.tanh(x)
-        return x
+        return x, None

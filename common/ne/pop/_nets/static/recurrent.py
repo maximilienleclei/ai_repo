@@ -72,13 +72,21 @@ class RecurrentStaticNets(BaseStaticNets):
             self.W_hh_weights[j]: Float[Tensor, "NN LiOS LiOS"] = self.W_hh_weights[j] + torch.randn_like(self.W_hh_weights[j]) * layer_j_W_hh_sigma
             self.W_hh_biases[j]: Float[Tensor, "NN 1 LiOS"] = self.W_hh_biases[j] + torch.randn_like(self.W_hh_biases[j]) * layer_j_b_hh_sigma
 
-    def __call__(self, x: Float[Tensor, "NN BS NI"]) -> Float[Tensor, "NN BS NO"]:
+    def __call__(
+        self,
+        x: Float[Tensor, "NN BS NI"],
+        mem: list[Float[Tensor, "NN BS LiOS"]] | None = None
+    ) -> tuple[Float[Tensor, "NN BS NO"], list[Float[Tensor, "NN BS LiOS"]]]:
         layer_sizes: list[int] = [self.config.num_inputs] + self.config.hidden_layer_sizes + [self.config.num_outputs]
+
+        # Initialize or use provided hidden states
+        # TODO (Step 3): Currently always initializes to zeros. Need to properly use mem parameter.
         hidden_states: list[Float[Tensor, "NN BS LiOS"]] = []
         for j in range(self.num_layers):
             layer_j_out_size: int = layer_sizes[j + 1]
             layer_j_h: Float[Tensor, "NN BS LiOS"] = torch.zeros(self.config.num_nets, x.shape[1], layer_j_out_size)
             hidden_states.append(layer_j_h)
+
         layer_input: Float[Tensor, "NN BS dim"] = x
         for j in range(self.num_layers):
             layer_j_ih: Float[Tensor, "NN BS LiOS"] = torch.bmm(layer_input, self.W_ih_weights[j].transpose(-1, -2))
@@ -88,4 +96,5 @@ class RecurrentStaticNets(BaseStaticNets):
             layer_j_h_new: Float[Tensor, "NN BS LiOS"] = torch.tanh(layer_j_ih + layer_j_hh)
             hidden_states[j] = layer_j_h_new
             layer_input = layer_j_h_new
-        return hidden_states[-1]
+
+        return hidden_states[-1], hidden_states
