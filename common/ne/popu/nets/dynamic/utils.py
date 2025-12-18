@@ -85,7 +85,7 @@ class WelfordRunningStandardizer:
         )
         raw_z_score: Float[Tensor, "TNNplus1"] = (x_or_z - mean) / safe_std_dev
         z_score_output: Float[Tensor, "TNNplus1"] = torch.where(
-            is_valid, raw_z_score, torch.tensor(0.0)
+            is_valid, raw_z_score, torch.zeros_like(raw_z_score)
         )
         log.debug("e. z_score_output")
         log.debug(z_score_output)
