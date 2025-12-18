@@ -355,12 +355,17 @@ class Net:
             return
         self.nodes.being_pruned.append(node_being_pruned)
         self.weights_list.remove(node_being_pruned.weights)
+        pruned_uid: int = node_being_pruned.mutable_uid
         self.n_mean_m2_x_z = torch.cat(
             (
-                self.n_mean_m2_x_z[: node_being_pruned.mutable_uid],
-                self.n_mean_m2_x_z[node_being_pruned.mutable_uid + 1 :],
+                self.n_mean_m2_x_z[:pruned_uid],
+                self.n_mean_m2_x_z[pruned_uid + 1 :],
             )
         )
+        # Decrement mutable_uid BEFORE recursive pruning to keep indices valid
+        for node in self.nodes.all:
+            if node.mutable_uid > pruned_uid:
+                node.mutable_uid -= 1
         for node_being_pruned_out_node in node_being_pruned.out_nodes.copy():
             self.prune_connection(
                 in_node=node_being_pruned,
@@ -376,9 +381,6 @@ class Net:
         for node_list in self.nodes:
             while node_being_pruned in node_list:
                 node_list.remove(node_being_pruned)
-        for node in self.nodes.all:
-            if node.mutable_uid > node_being_pruned.mutable_uid:
-                node.mutable_uid -= 1
 
     def prune_connection(
         self: "Net", in_node: Node, out_node: Node, node_being_pruned: Node
