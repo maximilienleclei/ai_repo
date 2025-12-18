@@ -32,6 +32,7 @@ class ScoreEval(BaseEval):
     def __call__(self: "ScoreEval", population: BasePopu) -> torch.Tensor:
         num_envs = self.env.num_workers
         fitness_scores = torch.zeros(num_envs)
+        population.nets.reset()  # Initialize hidden states for recurrent networks
         x = self.env.reset()
         for step in range(self.config.max_steps):
             x["action"] = population(x["observation"])

@@ -1,0 +1,20 @@
+# @package _global_
+defaults:
+  - /algo: simple_ga
+  - /eval: score
+  - /popu: actor
+  - /popu/nets: feedforward  # Override with: /popu/nets=recurrent or /popu/nets=dynamic
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  num_minutes: 1
+
+eval:
+  config:
+    env_name: "CartPole-v1"
+    max_steps: 500
+
+popu:
+  config:
+    size: 10
