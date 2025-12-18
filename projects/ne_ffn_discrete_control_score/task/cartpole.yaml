@@ -1,0 +1,25 @@
+# @package _global_
+defaults:
+  - /alg: simple_ga
+  - /eval: score
+  - /pop_: actor
+  - /pop_/nets: feedforward
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  num_minutes: 1
+
+# No algorithm config needed for SimpleGA (50% truncation is fixed)
+
+eval:
+  config:
+    env_name: "CartPole-v1"
+    max_steps: 500
+pop_:
+  config:
+    size: 10
+  nets:
+    config:
+      hidden_layer_sizes: [32, 32]
+      sigma: 0.03

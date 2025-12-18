@@ -12,6 +12,7 @@ from common.utils.hydra_zen import generate_config
 
 
 def store_configs(store: ZenStore) -> None:
+    store = store(group="litmodule")
     store(
         generate_config(
             Cond1DTarget1DAutoregressionLitModule,
@@ -20,7 +21,6 @@ def store_configs(store: ZenStore) -> None:
             ),
         ),
         name="cond1dtarget1d/autoregression",
-        group="litmodule",
     )
     store(
         generate_config(
@@ -28,5 +28,4 @@ def store_configs(store: ZenStore) -> None:
             config=generate_config(Cond1DTarget1DDiffusionLitModuleConfig),
         ),
         name="cond1dtarget1d/diffusion",
-        group="litmodule",
     )

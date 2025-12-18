@@ -46,33 +46,47 @@ class CMAESState:
         self.device: str = device
 
         # Mean vector (search center) - initialized to zero
-        self.mean: Float[Tensor, "num_params"] = torch.zeros(num_params, device=device)
+        self.mean: Float[Tensor, "num_params"] = torch.zeros(
+            num_params, device=device
+        )
 
         # Step size (global mutation strength)
         self.sigma: float = sigma_init
 
         # Diagonal covariance (coordinate-wise variances)
-        self.C_diag: Float[Tensor, "num_params"] = torch.ones(num_params, device=device)
+        self.C_diag: Float[Tensor, "num_params"] = torch.ones(
+            num_params, device=device
+        )
 
         # Evolution path for covariance adaptation
-        self.p_c: Float[Tensor, "num_params"] = torch.zeros(num_params, device=device)
+        self.p_c: Float[Tensor, "num_params"] = torch.zeros(
+            num_params, device=device
+        )
 
         # Evolution path for step-size adaptation
-        self.p_sigma: Float[Tensor, "num_params"] = torch.zeros(num_params, device=device)
+        self.p_sigma: Float[Tensor, "num_params"] = torch.zeros(
+            num_params, device=device
+        )
 
         # Generation counter
         self.generation: int = 0
 
         # Learning rates (standard CMA-ES constants)
-        self.c_c: float = 4.0 / (num_params + 4.0)  # Covariance path learning rate
-        self.c_1: float = 2.0 / ((num_params + 1.3) ** 2 + num_nets)  # Rank-1 update
+        self.c_c: float = 4.0 / (
+            num_params + 4.0
+        )  # Covariance path learning rate
+        self.c_1: float = 2.0 / (
+            (num_params + 1.3) ** 2 + num_nets
+        )  # Rank-1 update
         self.c_mu: float = min(
             1 - self.c_1,
-            2 * (num_nets - 2 + 1 / num_nets) / ((num_params + 2) ** 2 + num_nets),
+            2
+            * (num_nets - 2 + 1 / num_nets)
+            / ((num_params + 2) ** 2 + num_nets),
         )  # Rank-mu update
-        self.c_sigma: float = (
-            2 + num_nets
-        ) / (5 + num_params + num_nets)  # Step-size learning
+        self.c_sigma: float = (2 + num_nets) / (
+            5 + num_params + num_nets
+        )  # Step-size learning
         self.damps: float = (
             1
             + 2 * max(0, math.sqrt((num_nets - 1) / (num_params + 1)) - 1)
@@ -97,7 +111,7 @@ def select_cmaes(population, fitness: Float[Tensor, "num_nets"]) -> None:
     Raises:
         TypeError: If network is DynamicNetPopulation
     """
-    from common.ne.net.dynamic.population import DynamicNetPopulation
+    from common.ne._net.dynamic.population import DynamicNetPopulation
 
     # Enforce tensor networks only
     if isinstance(population.nets, DynamicNetPopulation):
@@ -128,13 +142,19 @@ def select_cmaes(population, fitness: Float[Tensor, "num_nets"]) -> None:
     mu: int = population.num_nets // 2  # Number of parents
     weights: Float[Tensor, "mu"] = torch.log(
         torch.tensor(mu + 0.5, device=state.device)
-    ) - torch.log(torch.arange(1, mu + 1, device=state.device, dtype=torch.float))
+    ) - torch.log(
+        torch.arange(1, mu + 1, device=state.device, dtype=torch.float)
+    )
     weights = weights / weights.sum()  # Normalize
-    mu_eff: float = 1.0 / (weights**2).sum().item()  # Variance effective selection mass
+    mu_eff: float = (
+        1.0 / (weights**2).sum().item()
+    )  # Variance effective selection mass
 
     # Update mean (weighted average of top mu samples)
     old_mean: Float[Tensor, "num_params"] = state.mean.clone()
-    selected_samples: Float[Tensor, "mu num_params"] = samples[sorted_indices[:mu]]
+    selected_samples: Float[Tensor, "mu num_params"] = samples[
+        sorted_indices[:mu]
+    ]
     state.mean = (weights.view(-1, 1) * selected_samples).sum(dim=0)
 
     # Compute evolution step
@@ -145,29 +165,40 @@ def select_cmaes(population, fitness: Float[Tensor, "num_nets"]) -> None:
         state.C_diag
     )  # Diagonal inverse square root
     state.p_c = (1 - state.c_c) * state.p_c + (
-        math.sqrt(state.c_c * (2 - state.c_c) * mu_eff) * step / state.sigma * C_sqrt_inv
+        math.sqrt(state.c_c * (2 - state.c_c) * mu_eff)
+        * step
+        / state.sigma
+        * C_sqrt_inv
     )
 
     # Update evolution path for step-size (p_sigma)
     state.p_sigma = (1 - state.c_sigma) * state.p_sigma + (
-        math.sqrt(state.c_sigma * (2 - state.c_sigma) * mu_eff) * step / state.sigma
+        math.sqrt(state.c_sigma * (2 - state.c_sigma) * mu_eff)
+        * step
+        / state.sigma
     )
 
     # Update step-size (sigma)
-    state.sigma = state.sigma * torch.exp(
-        (state.c_sigma / state.damps) * (state.p_sigma.norm() / state.chi_n - 1)
-    ).item()
+    state.sigma = (
+        state.sigma
+        * torch.exp(
+            (state.c_sigma / state.damps)
+            * (state.p_sigma.norm() / state.chi_n - 1)
+        ).item()
+    )
 
     # Update diagonal covariance matrix
     # Rank-1 update from evolution path
     state.C_diag = (
-        (1 - state.c_1 - state.c_mu) * state.C_diag + state.c_1 * state.p_c**2
-    )
+        1 - state.c_1 - state.c_mu
+    ) * state.C_diag + state.c_1 * state.p_c**2
 
     # Rank-mu update from selected samples
     for i in range(mu):
         idx: int = sorted_indices[i].item()
-        diff: Float[Tensor, "num_params"] = (samples[idx] - old_mean) / state.sigma
+        diff: Float[Tensor, "num_params"] = (
+            samples[idx] - old_mean
+        ) / state.sigma
         state.C_diag = state.C_diag + state.c_mu * weights[i] * diff**2
 
     # Ensure covariance stays positive
@@ -180,10 +211,9 @@ def select_cmaes(population, fitness: Float[Tensor, "num_nets"]) -> None:
         population.num_nets, state.num_params, device=state.device
     )
     # Scale by covariance diagonal and sigma
-    new_samples: Float[Tensor, "num_nets num_params"] = (
-        state.mean.unsqueeze(0)
-        + state.sigma * noise * torch.sqrt(state.C_diag).unsqueeze(0)
-    )
+    new_samples: Float[Tensor, "num_nets num_params"] = state.mean.unsqueeze(
+        0
+    ) + state.sigma * noise * torch.sqrt(state.C_diag).unsqueeze(0)
 
     # Set parameters
     population.set_parameters_flat(new_samples)

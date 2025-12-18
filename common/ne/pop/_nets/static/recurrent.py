@@ -17,12 +17,14 @@ from common.ne.pop._nets.static.base import BaseStaticNets, StaticNetsConfig
 
 class RecurrentStaticNets(BaseStaticNets):
 
-    def __init__(self, config: StaticNetsConfig):
-        self.config: StaticNetsConfig = config
+    def __init__(
+        self: "RecurrentStaticNets", config: StaticNetsConfig
+    ) -> None:
+        super().__init__(config)
         layer_sizes: list[int] = (
-            [config.num_inputs]
-            + config.hidden_layer_sizes
-            + [config.num_outputs]
+            [self.config.num_inputs]
+            + self.config.hidden_layer_sizes
+            + [self.config.num_outputs]
         )
         self.W_ih_weights: list[Float[Tensor, "NN LiOS LiIS"]] = []
         self.W_ih_biases: list[Float[Tensor, "NN 1 LiOS"]] = []
@@ -82,7 +84,7 @@ class RecurrentStaticNets(BaseStaticNets):
                     torch.full_like(layer_j_b_hh, self.config.sigma)
                 )
 
-    def mutate(self) -> None:
+    def mutate(self: "RecurrentStaticNets") -> None:
         for j in range(self.num_layers):
             if self.config.sigma_sigma is not None:
                 layer_j_xi_W_ih: Float[Tensor, "NN LiOS LiIS"] = (
@@ -147,31 +149,60 @@ class RecurrentStaticNets(BaseStaticNets):
                 + torch.randn_like(self.W_hh_biases[j]) * layer_j_b_hh_sigma
             )
 
-    def __call__(
-        self, x: Float[Tensor, "NN BS NI"]
-    ) -> Float[Tensor, "NN BS NO"]:
+    def resample(self: "RecurrentStaticNets", indices: Tensor) -> None:
+        for j in range(self.num_layers):
+            self.W_ih_weights[j]: Float[Tensor, "NN LiOS LiIS"] = (
+                self.W_ih_weights[j][indices]
+            )
+            self.W_ih_biases[j]: Float[Tensor, "NN 1 LiOS"] = self.W_ih_biases[
+                j
+            ][indices]
+            self.W_hh_weights[j]: Float[Tensor, "NN LiOS LiOS"] = (
+                self.W_hh_weights[j][indices]
+            )
+            self.W_hh_biases[j]: Float[Tensor, "NN 1 LiOS"] = self.W_hh_biases[
+                j
+            ][indices]
+            if self.config.sigma_sigma is not None:
+                self.W_ih_weight_sigmas[j]: Float[Tensor, "NN LiOS LiIS"] = (
+                    self.W_ih_weight_sigmas[j][indices]
+                )
+                self.W_ih_bias_sigmas[j]: Float[Tensor, "NN 1 LiOS"] = (
+                    self.W_ih_bias_sigmas[j][indices]
+                )
+                self.W_hh_weight_sigmas[j]: Float[Tensor, "NN LiOS LiOS"] = (
+                    self.W_hh_weight_sigmas[j][indices]
+                )
+                self.W_hh_bias_sigmas[j]: Float[Tensor, "NN 1 LiOS"] = (
+                    self.W_hh_bias_sigmas[j][indices]
+                )
+
+    def reset(self: "RecurrentStaticNets") -> None:
         layer_sizes: list[int] = (
             [self.config.num_inputs]
             + self.config.hidden_layer_sizes
             + [self.config.num_outputs]
         )
-        hidden_states: list[Float[Tensor, "NN BS LiOS"]] = []
+        self.hidden_states: list[Float[Tensor, "NN BS LiOS"]] = []
         for j in range(self.num_layers):
             layer_j_out_size: int = layer_sizes[j + 1]
             layer_j_h: Float[Tensor, "NN BS LiOS"] = torch.zeros(
-                self.config.num_nets, x.shape[1], layer_j_out_size
+                self.config.num_nets, 1, layer_j_out_size
             )
-            hidden_states.append(layer_j_h)
-        layer_input: Float[Tensor, "NN BS dim"] = x
+            self.hidden_states.append(layer_j_h)
+
+    def __call__(
+        self: "RecurrentStaticNets", x: Float[Tensor, "NN BS NI"]
+    ) -> Float[Tensor, "NN BS NO"]:
         for j in range(self.num_layers):
             layer_j_ih: Float[Tensor, "NN BS LiOS"] = torch.bmm(
-                layer_input, self.W_ih_weights[j].transpose(-1, -2)
+                x, self.W_ih_weights[j].transpose(-1, -2)
             )
             layer_j_ih: Float[Tensor, "NN BS LiOS"] = (
                 layer_j_ih + self.W_ih_biases[j]
             )
             layer_j_hh: Float[Tensor, "NN BS LiOS"] = torch.bmm(
-                hidden_states[j], self.W_hh_weights[j].transpose(-1, -2)
+                self.hidden_states[j], self.W_hh_weights[j].transpose(-1, -2)
             )
             layer_j_hh: Float[Tensor, "NN BS LiOS"] = (
                 layer_j_hh + self.W_hh_biases[j]
@@ -179,6 +210,5 @@ class RecurrentStaticNets(BaseStaticNets):
             layer_j_h_new: Float[Tensor, "NN BS LiOS"] = torch.tanh(
                 layer_j_ih + layer_j_hh
             )
-            hidden_states[j] = layer_j_h_new
-            layer_input = layer_j_h_new
-        return hidden_states[-1]
+            x = self.hidden_states[j] = layer_j_h_new
+        return x

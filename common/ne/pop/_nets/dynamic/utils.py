@@ -6,7 +6,7 @@ TNN: Total number of nodes (in all networks).
 import logging
 
 import torch
-from jaxtyping import Bool, Float, Int
+from jaxtyping import Bool, Float
 from torch import Tensor
 
 log = logging.getLogger(__name__)

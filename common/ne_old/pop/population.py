@@ -86,14 +86,20 @@ class Population:
 
         # Per-episode tracking (for env_transfer mode)
         self.curr_episode_score = torch.zeros(n, device=self.device)
-        self.curr_episode_num_steps = torch.zeros(n, dtype=torch.long, device=self.device)
+        self.curr_episode_num_steps = torch.zeros(
+            n, dtype=torch.long, device=self.device
+        )
 
         # Per-evaluation tracking
         self.curr_eval_score = torch.zeros(n, device=self.device)
-        self.curr_eval_num_steps = torch.zeros(n, dtype=torch.long, device=self.device)
+        self.curr_eval_num_steps = torch.zeros(
+            n, dtype=torch.long, device=self.device
+        )
 
         # Global tracking
-        self.total_num_steps = torch.zeros(n, dtype=torch.long, device=self.device)
+        self.total_num_steps = torch.zeros(
+            n, dtype=torch.long, device=self.device
+        )
         self.continual_fitness = torch.zeros(n, device=self.device)
 
         # Environment state storage (for env_transfer)
@@ -152,7 +158,10 @@ class Population:
         Args:
             indices: Network indices to keep [num_nets] (with duplicates to fill population)
         """
-        from common.ne.net.protocol import ParameterizableNetwork, StructuralNetwork
+        from common.ne._net.protocol import (
+            ParameterizableNetwork,
+            StructuralNetwork,
+        )
 
         if isinstance(self._nets, StructuralNetwork):
             # DynamicNetPopulation: needs fitness tensor for selection
@@ -201,7 +210,7 @@ class Population:
         Raises:
             TypeError: If network doesn't support parameter flattening (e.g., DynamicNetPopulation)
         """
-        from common.ne.net.protocol import ParameterizableNetwork
+        from common.ne._net.protocol import ParameterizableNetwork
 
         if not isinstance(self._nets, ParameterizableNetwork):
             raise TypeError(
@@ -211,7 +220,9 @@ class Population:
 
         return self._nets.get_parameters_flat()
 
-    def set_parameters_flat(self, flat_params: Float[Tensor, "num_nets num_params"]) -> None:
+    def set_parameters_flat(
+        self, flat_params: Float[Tensor, "num_nets num_params"]
+    ) -> None:
         """Set parameters from flattened tensor.
 
         Used by ES/CMA-ES to set weighted-average parameters back to networks.
@@ -223,7 +234,7 @@ class Population:
         Raises:
             TypeError: If network doesn't support parameter setting (e.g., DynamicNetPopulation)
         """
-        from common.ne.net.protocol import ParameterizableNetwork
+        from common.ne._net.protocol import ParameterizableNetwork
 
         if not isinstance(self._nets, ParameterizableNetwork):
             raise TypeError(
@@ -265,9 +276,11 @@ class Population:
         # Add saved environment if present (use pickle instead of deepcopy)
         if self.saved_env is not None:
             import pickle
+
             state["saved_env"] = pickle.dumps(self.saved_env)
         if self.saved_env_out is not None:
             import pickle
+
             # Handle both tensor and non-tensor cases
             if isinstance(self.saved_env_out, Tensor):
                 state["saved_env_out"] = self.saved_env_out.clone()
@@ -309,6 +322,7 @@ class Population:
         # Restore saved environment if present (unpickle instead of deepcopy)
         if "saved_env" in state:
             import pickle
+
             self.saved_env = pickle.loads(state["saved_env"])
         if "saved_env_out" in state:
             # Handle both tensor and non-tensor cases
@@ -316,4 +330,5 @@ class Population:
                 self.saved_env_out = state["saved_env_out"].clone()
             else:
                 import pickle
+
                 self.saved_env_out = pickle.loads(state["saved_env_out"])

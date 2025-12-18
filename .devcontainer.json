@@ -4,10 +4,12 @@
       "vscode": {
         "extensions": [
           "ms-python.python",
+          "ms-toolsai.jupyter",
           "ms-python.black-formatter",
           "ms-python.isort",
           "tamasfe.even-better-toml",
-          "yzhang.markdown-all-in-one"
+          "yzhang.markdown-all-in-one",
+          "GitHub.copilot"
         ],
         "settings": {
           "black-formatter.args": [

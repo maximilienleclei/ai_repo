@@ -20,7 +20,7 @@ class NeuroevolutionTaskConfig(
     make_config(
         alg=generate_config(BaseAlg),
         eval=generate_config(BaseEval),
-        pop=generate_config(BasePop),
+        pop_=generate_config(BasePop),
         config=generate_config(NeuroevolutionSubtaskConfig),
     ),
 ):

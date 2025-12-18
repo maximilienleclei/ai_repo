@@ -9,6 +9,8 @@ altered during network evolution.
 Network computation is to occur through population-wide operations and are
 thus not implemented here.
 
+---
+
 Shapes:
 
 NMN: Number of mutable (hidden and output) nodes.
@@ -16,11 +18,11 @@ NON: Number of output nodes.
 NN: Number of nodes.
 """
 
+import copy
 import random
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Annotated as An
-from typing import Any
 
 import torch
 from jaxtyping import Float, Int
@@ -470,17 +472,6 @@ class Net:
         )
 
     def clone(self: "Net") -> "Net":
-        """Create a deep copy of this network.
-
-        Properly clones all node structures, weights, and state tensors.
-        This method replaces the use of copy.deepcopy() which is slow and
-        fragile with CUDA tensors.
-
-        Returns:
-            New Net instance with cloned structure and parameters
-        """
-        import copy
-
         # Create new network with same dimensions
         new_net = Net(self.num_inputs, self.num_outputs, device=self.device)
 
@@ -498,7 +489,12 @@ class Net:
         # Deep copy node structure (still need deepcopy for graph structure)
         # This is unavoidable for connected graph - but localized to one method
         new_net.nodes = copy.deepcopy(self.nodes)
-        new_net.weights_list = copy.deepcopy(self.weights_list)
+
+        # Rebuild weights_list from cloned nodes to maintain reference invariant
+        # Order must match: output first, then hidden
+        new_net.weights_list = []
+        for node in new_net.nodes.output + new_net.nodes.hidden:
+            new_net.weights_list.append(node.weights)
 
         # Clone tensors properly (explicit tensor cloning, not deepcopy)
         new_net.n_mean_m2_x_z = self.n_mean_m2_x_z.clone()
@@ -512,14 +508,6 @@ class Net:
         return new_net
 
     def get_state_dict(self: "Net") -> dict:
-        """Serialize complete network state for checkpointing.
-
-        Returns dict with all information needed to reconstruct this Net,
-        including the complete graph structure.
-
-        Returns:
-            State dict containing all network state
-        """
         # Serialize node structure
         node_states: list[dict] = []
         for node in self.nodes.all:
@@ -550,13 +538,6 @@ class Net:
         }
 
     def load_state_dict(self: "Net", state: dict) -> None:
-        """Restore network from serialized state.
-
-        Reconstructs the complete graph structure from the saved state.
-
-        Args:
-            state: State dict from get_state_dict()
-        """
         # Restore scalar attributes
         self.num_inputs = state["num_inputs"]
         self.num_outputs = state["num_outputs"]
@@ -594,6 +575,7 @@ class Net:
 
             if node.role == "input":
                 self.nodes.input.append(node)
+                self.nodes.receiving.append(node)
             elif node.role == "hidden":
                 self.nodes.hidden.append(node)
             elif node.role == "output":
@@ -607,13 +589,12 @@ class Net:
                     in_node = uid_to_node[in_uid]
                     node.in_nodes.append(in_node)
                     in_node.out_nodes.append(node)
-                    if node not in self.nodes.receiving:
-                        self.nodes.receiving.append(node)
-                    if in_node not in self.nodes.emitting:
-                        self.nodes.emitting.append(in_node)
+                    # Add once per connection (not once per node)
+                    self.nodes.receiving.append(node)
+                    self.nodes.emitting.append(in_node)
 
-        # Rebuild weights_list
-        for node in self.nodes.hidden + self.nodes.output:
+        # Rebuild weights_list (order must match: output first, then hidden)
+        for node in self.nodes.output + self.nodes.hidden:
             self.weights_list.append(node.weights)
 
         # Rebuild computation components

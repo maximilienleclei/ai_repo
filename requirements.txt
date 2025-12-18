@@ -26,6 +26,7 @@ x_transformers                    # Transformer utils
 transformers                      # Huggingface models
 timm                              # Vision modeling utils
 matplotlib                        # Plotting
+ipykernel                         # VSCode notebooks
 
 # --- Git Dependencies ---
 # Launcher config (python argument for submitit + sequential task launching local)

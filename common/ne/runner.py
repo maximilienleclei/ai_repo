@@ -25,7 +25,7 @@ class NeuroevolutionTaskRunner(BaseTaskRunner):
         cls: type["NeuroevolutionTaskRunner"],
         alg: BaseAlg,
         eval: BaseEval,
-        pop: BasePop,
+        pop_: BasePop,
         config: NeuroevolutionSubtaskConfig,
     ) -> Any:
-        return evolve(alg, eval, pop, config)
+        return evolve(alg, eval, pop_, config)

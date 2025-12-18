@@ -18,28 +18,15 @@ from common.utils.hydra_zen import generate_config, generate_config_partial
 def store_configs(store: ZenStore) -> None:
     store_cond_autoreg_configs(store)
     store_cond_diffusion_configs(store)
-    store(
-        generate_config(FNN, config=generate_config(FNNConfig)),
-        name="fnn",
-        group="litmodule/nnmodule",
-    )
+    store = store(group="litmodule/nnmodule")
+    store(generate_config(FNN, config=generate_config(FNNConfig)), name="fnn")
     store(
         generate_config(Mamba, config=generate_config(MambaConfig)),
         name="mamba",
-        group="litmodule/nnmodule",
     )
     store(
         generate_config(Mamba2, config=generate_config(Mamba2Config)),
         name="mamba2",
-        group="litmodule/nnmodule",
     )
-    store(
-        generate_config(RNN),
-        name="rnn",
-        group="litmodule/nnmodule/",
-    )
-    store(
-        generate_config(LSTM),
-        name="lstm",
-        group="litmodule/nnmodule/",
-    )
+    store(generate_config(RNN), name="rnn")
+    store(generate_config(LSTM), name="lstm")

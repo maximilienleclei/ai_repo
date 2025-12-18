@@ -3,10 +3,14 @@
 from hydra_zen import ZenStore
 from lightning.pytorch.loggers.wandb import WandbLogger
 
-from common.ne.config import NESubtaskConfig, NETaskConfig, StatePersistenceConfig
-from common.ne.net.dynamic.population import DynamicNetPopulation
-from common.ne.net.feedforward import BatchedFeedforward
-from common.ne.net.recurrent import BatchedRecurrent
+from common.ne._net.dynamic.population import DynamicNetPopulation
+from common.ne._net.feedforward import BatchedFeedforward
+from common.ne._net.recurrent import BatchedRecurrent
+from common.ne.config import (
+    NESubtaskConfig,
+    NETaskConfig,
+    StatePersistenceConfig,
+)
 from common.store import store_wandb_logger_configs
 from common.utils.hydra_zen import generate_config
 

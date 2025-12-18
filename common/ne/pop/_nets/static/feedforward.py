@@ -17,12 +17,14 @@ from common.ne.pop._nets.static.base import BaseStaticNets, StaticNetsConfig
 
 class FeedforwardStaticNets(BaseStaticNets):
 
-    def __init__(self, config: StaticNetsConfig):
-        self.config: StaticNetsConfig = config
+    def __init__(
+        self: "FeedforwardStaticNets", config: StaticNetsConfig
+    ) -> None:
+        super().__init__(config)
         layer_sizes: list[int] = (
-            [config.num_inputs]
-            + config.hidden_layer_sizes
-            + [config.num_outputs]
+            [self.config.num_inputs]
+            + self.config.hidden_layer_sizes
+            + [self.config.num_outputs]
         )
         self.weights: list[Float[Tensor, "NN LiIS LiOS"]] = []
         self.biases: list[Float[Tensor, "NN 1 LiOS"]] = []
@@ -41,20 +43,26 @@ class FeedforwardStaticNets(BaseStaticNets):
                 torch.randn(self.config.num_nets, 1, layer_j_out_size)
                 * layer_j_std
             )
+            layer_j_weight.requires_grad = False
+            layer_j_bias.requires_grad = False
             self.weights.append(layer_j_weight)
             self.biases.append(layer_j_bias)
         if self.config.sigma_sigma is not None:
             self.weight_sigmas: list[Float[Tensor, "NN LiIS LiOS"]] = []
             self.bias_sigmas: list[Float[Tensor, "NN 1 LiOS"]] = []
             for layer_j_weight, layer_j_bias in zip(self.weights, self.biases):
-                self.weight_sigmas.append(
+                layer_j_weight_sigma: Float[Tensor, "NN LiIS LiOS"] = (
                     torch.full_like(layer_j_weight, self.config.sigma)
                 )
-                self.bias_sigmas.append(
+                layer_j_bias_sigma: Float[Tensor, "NN 1 LiOS"] = (
                     torch.full_like(layer_j_bias, self.config.sigma)
                 )
+                layer_j_weight_sigma.requires_grad = False
+                layer_j_bias_sigma.requires_grad = False
+                self.weight_sigmas.append(layer_j_weight_sigma)
+                self.bias_sigmas.append(layer_j_bias_sigma)
 
-    def mutate(self) -> None:
+    def mutate(self: "FeedforwardStaticNets") -> None:
         for j in range(self.num_layers):
             if self.config.sigma_sigma is not None:
                 layer_j_xi: Float[Tensor, "NN LiIS LiOS"] = (
@@ -89,8 +97,24 @@ class FeedforwardStaticNets(BaseStaticNets):
                 + torch.randn_like(self.biases[j]) * layer_j_bias_sigma
             )
 
+    def resample(self: "FeedforwardStaticNets", indices: Tensor) -> None:
+        for j in range(self.num_layers):
+            self.weights[j]: Float[Tensor, "NN LiIS LiOS"] = self.weights[j][
+                indices
+            ]
+            self.biases[j]: Float[Tensor, "NN 1 LiOS"] = self.biases[j][
+                indices
+            ]
+            if self.config.sigma_sigma is not None:
+                self.weight_sigmas[j]: Float[Tensor, "NN LiIS LiOS"] = (
+                    self.weight_sigmas[j][indices]
+                )
+                self.bias_sigmas[j]: Float[Tensor, "NN 1 LiOS"] = (
+                    self.bias_sigmas[j][indices]
+                )
+
     def __call__(
-        self, x: Float[Tensor, "NN BS NI"]
+        self: "FeedforwardStaticNets", x: Float[Tensor, "NN BS NI"]
     ) -> Float[Tensor, "NN BS NO"]:
         for j in range(self.num_layers):
             x: Float[Tensor, "NN BS LiOS"] = torch.bmm(x, self.weights[j])

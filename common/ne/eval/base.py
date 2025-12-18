@@ -1,8 +1,16 @@
-from common.ne.eval._optim.base import BaseOptimEval
-from common.ne.eval._test.base import BaseTestEval
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-class BaseEval:
+import torch
 
-    def __init__(self, optim_eval: BaseOptimEval, test_evals: list[BaseTestEval]):
-        self.optim_eval = optim_eval
-        self.test_evals = test_evals
+if TYPE_CHECKING:
+    from common.ne.pop.base import BasePop
+
+
+class BaseEval(ABC):
+
+    @abstractmethod
+    def __call__(self, population: "BasePop") -> torch.Tensor: ...
+
+    @abstractmethod
+    def retrieve_num_inputs_outputs(self) -> tuple[int, int]: ...

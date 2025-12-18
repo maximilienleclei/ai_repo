@@ -1,6 +1,12 @@
 from hydra_zen import ZenStore
-from common.ne.eval._optim.store import store_configs as store_optim_eval_configs
+
+from common.ne.eval.score import ScoreEval, ScoreEvalConfig
+from common.utils.hydra_zen import generate_config
 
 
 def store_configs(store: ZenStore) -> None:
-    store_optim_eval_configs(store)
+    store(
+        generate_config(ScoreEval, config=generate_config(ScoreEvalConfig)),
+        name="score",
+        group="eval",
+    )
