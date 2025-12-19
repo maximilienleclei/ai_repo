@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import torch
 
@@ -14,3 +14,6 @@ class BaseEval(ABC):
 
     @abstractmethod
     def retrieve_num_inputs_outputs(self: "BaseEval") -> tuple[int, int]: ...
+
+    @abstractmethod
+    def retrieve_input_output_specs(self: "BaseEval") -> tuple[Any, Any]: ...

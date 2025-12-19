@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Annotated as An
 
-from hydra import conf as hc
-from hydra import types as ht
-from hydra.experimental.callbacks import LogJobReturnCallback
 from hydra_zen import make_config
 
 from common.utils.beartype import ge, not_empty, one_of
 from common.utils.hydra_zen import generate_config
+from hydra import conf as hc
+from hydra import types as ht
+from hydra.experimental.callbacks import LogJobReturnCallback
 
 
 @dataclass
@@ -51,8 +51,8 @@ class BaseHydraConfig(
         ),
         mode=ht.RunMode.MULTIRUN,
         sweep=hc.SweepDir(
-            dir="${oc.env:AI_RESEARCH_PATH}/data/${project}/${task}/",
-            subdir="overrides#${hydra:job.override_dirname}/",
+            dir="${oc.env:AI_RESEARCH_PATH}/projects/${project}/results/${task}/",
+            subdir="${hydra:job.override_dirname}/",
         ),
     ),
 ): ...

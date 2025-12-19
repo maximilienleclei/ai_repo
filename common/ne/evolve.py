@@ -1,9 +1,12 @@
+import logging
 import time
 
 from common.ne.algo.base import BaseAlgo
 from common.ne.config import NeuroevolutionSubtaskConfig
 from common.ne.eval.base import BaseEval
 from common.ne.popu.base import BasePopu
+
+log = logging.getLogger(__name__)
 
 
 def evolve(
@@ -12,6 +15,7 @@ def evolve(
     popu: BasePopu,
     config: NeuroevolutionSubtaskConfig,
 ) -> float:
+    log.info(config.output_dir[config.output_dir.find("results/") :])
     start_time = time.time()
     generation = 0
     while (time.time() - start_time) / 60 < config.num_minutes:

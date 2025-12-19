@@ -27,10 +27,7 @@ transformers                      # Huggingface models
 timm                              # Vision modeling utils
 matplotlib                        # Plotting
 ipykernel                         # VSCode notebooks
-
-# --- Git Dependencies ---
-# Launcher config (python argument for submitit + sequential task launching local)
-hydra-submitit-launcher @ git+https://github.com/maximilienleclei/hydra#subdirectory=plugins/hydra_submitit_launcher/
+hydra-submitit-launcher           # Launcher config
 
 # Mamba wrapper
 mambapy @ git+https://github.com/alxndrTL/mamba.py

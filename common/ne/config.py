@@ -12,7 +12,7 @@ from common.utils.hydra_zen import generate_config
 
 @dataclass
 class NeuroevolutionSubtaskConfig(BaseSubtaskConfig):
-    num_minutes: int = 60
+    num_minutes: float = 60.0
 
 
 @dataclass
