@@ -53,10 +53,10 @@ from common.dl.litmodule.nnmodule.cond_diffusion.original_dit import (
 
 
 def modulate_multichannel_1d(
-    x: Float[Tensor, " BS NV VS"],
-    shift: Float[Tensor, " BS VS"],
-    scale: Float[Tensor, " BS VS"],
-) -> Float[Tensor, " BS NV VS"]:
+    x: Float[Tensor, "BS NV VS"],
+    shift: Float[Tensor, "BS VS"],
+    scale: Float[Tensor, "BS VS"],
+) -> Float[Tensor, "BS NV VS"]:
     """Shifts and scales the vector(s)."""
     pattern = "BS VS -> BS 1 VS"
     shift, scale = rearrange(shift, pattern), rearrange(scale, pattern)
@@ -94,9 +94,9 @@ class PatchEmbedMultiChannelOrdered1D(nn.Module):
 
     def forward(
         self: "PatchEmbedMultiChannelOrdered1D",
-        x: Float[Tensor, " BS IC SL"],
-    ) -> Float[Tensor, " BS NP ES"]:
-        x: Float[Tensor, " BS ES NP"] = self.proj(x)
+        x: Float[Tensor, "BS IC SL"],
+    ) -> Float[Tensor, "BS NP ES"]:
+        x: Float[Tensor, "BS ES NP"] = self.proj(x)
         return rearrange(x, "BS ES NP -> BS NP ES")
 
 
@@ -147,14 +147,14 @@ class TransformerEncodeMultiChannelOrdered1D(nn.Module):
 
     def forward(
         self: "TransformerEncodeMultiChannelOrdered1D",
-        x: Float[Tensor, " BS IC SL"],
-    ) -> Float[Tensor, " BS ES"]:
+        x: Float[Tensor, "BS IC SL"],
+    ) -> Float[Tensor, "BS ES"]:
         if self.training:
             x[: int(len(x) * self.drop_conditioning_prob)] = 0
-        x: Float[Tensor, " BS NP ES"] = self.patch_embed(x) + self.pos_embed
-        x: Float[Tensor, " BS NP ES"] = self.encoder(x)
-        x: Float[Tensor, " BS NPxES"] = rearrange(x, "BS NP ES -> BS (NP ES)")
-        x: Float[Tensor, " BS ES"] = self.proj(x)
+        x: Float[Tensor, "BS NP ES"] = self.patch_embed(x) + self.pos_embed
+        x: Float[Tensor, "BS NP ES"] = self.encoder(x)
+        x: Float[Tensor, "BS NPxES"] = rearrange(x, "BS NP ES -> BS (NP ES)")
+        x: Float[Tensor, "BS ES"] = self.proj(x)
         return x
 
 
@@ -186,20 +186,20 @@ class FinalLayer1D(nn.Module):
 
     def forward(
         self: "FinalLayer1D",
-        x: Float[Tensor, " BS NP HS"],
-        c: Float[Tensor, " BS HS"],
-    ) -> Float[Tensor, " BS NP PSxOC"]:
+        x: Float[Tensor, "BS NP HS"],
+        c: Float[Tensor, "BS HS"],
+    ) -> Float[Tensor, "BS NP PSxOC"]:
         shift, scale = rearrange(
             self.adaLN_modulation(c),
             "BS (split HS) -> split BS HS",
             split=2,
         )
-        x: Float[Tensor, " BS NP HS"] = modulate_multichannel_1d(
+        x: Float[Tensor, "BS NP HS"] = modulate_multichannel_1d(
             self.norm_final(x),
             shift,
             scale,
         )
-        x: Float[Tensor, " BS NP PSxOC"] = self.linear(x)
+        x: Float[Tensor, "BS NP PSxOC"] = self.linear(x)
         return x
 
 
@@ -401,8 +401,8 @@ class DiT1D1D(nn.Module):
 
     def unpatchify(
         self: "DiT1D1D",
-        x: Float[Tensor, " BS NP PSxOC"],
-    ) -> Float[Tensor, " BS OC SL"]:
+        x: Float[Tensor, "BS NP PSxOC"],
+    ) -> Float[Tensor, "BS OC SL"]:
         """Equivalent to `original_dit.DiT.unpatchify` when the
         output signal is 1D rather than 2D."""
         return rearrange(
@@ -413,37 +413,37 @@ class DiT1D1D(nn.Module):
 
     def forward(
         self: "DiT1D1D",
-        x: Float[Tensor, " BS TNC TSL"],
-        t: Int[Tensor, " BS"],
-        y: Float[Tensor, " BS CNC CSL"],
-    ) -> Float[Tensor, " BS OC SL"]:
-        x: Float[Tensor, " BS NP HS"] = self.x_embedder(x) + self.pos_embed
-        t: Float[Tensor, " BS HS"] = self.t_embedder(t)
-        y: Float[Tensor, " BS HS"] = self.y_embedder(y)
-        c: Float[Tensor, " BS HS"] = t + y
+        x: Float[Tensor, "BS TNC TSL"],
+        t: Int[Tensor, "BS"],
+        y: Float[Tensor, "BS CNC CSL"],
+    ) -> Float[Tensor, "BS OC SL"]:
+        x: Float[Tensor, "BS NP HS"] = self.x_embedder(x) + self.pos_embed
+        t: Float[Tensor, "BS HS"] = self.t_embedder(t)
+        y: Float[Tensor, "BS HS"] = self.y_embedder(y)
+        c: Float[Tensor, "BS HS"] = t + y
         for block in self.blocks:
-            x: Float[Tensor, " BS NP HS"] = block(x, c)
-        x: Float[Tensor, " BS NP PSxMOC"] = self.final_layer(x, c)
-        x: Float[Tensor, " BS MOC TSL"] = self.unpatchify(x)
+            x: Float[Tensor, "BS NP HS"] = block(x, c)
+        x: Float[Tensor, "BS NP PSxMOC"] = self.final_layer(x, c)
+        x: Float[Tensor, "BS MOC TSL"] = self.unpatchify(x)
         return x
 
     def forward_with_cfg(
         self: "DiT1D1D",
-        x: Float[Tensor, " BS TNC TSL"],
-        t: Int[Tensor, " BS"],
-        y: Float[Tensor, " BS CNC CSL"],
-        cfg_scales: Float[Tensor, " BS"],
-    ) -> Float[Tensor, " BS MOC TSL"]:
+        x: Float[Tensor, "BS TNC TSL"],
+        t: Int[Tensor, "BS"],
+        y: Float[Tensor, "BS CNC CSL"],
+        cfg_scales: Float[Tensor, "BS"],
+    ) -> Float[Tensor, "BS MOC TSL"]:
         """Classifier-free guidance version of `forward` given `cfg_scale`"""
         BS: int = len(x)  # noqa: N806
-        x: Float[Tensor, " BSx2 TNC TSL"] = x.repeat(2, 1, 1)
-        y: Float[Tensor, " BSx2 CNC CSL"] = y.repeat(2, 1, 1)
+        x: Float[Tensor, "BSx2 TNC TSL"] = x.repeat(2, 1, 1)
+        y: Float[Tensor, "BSx2 CNC CSL"] = y.repeat(2, 1, 1)
         y[BS:] = 0
-        t: Int[Tensor, " BSx2"] = t.repeat(2)
-        model_out: Float[Tensor, " BSx2 MOC TSL"] = self.forward(x, t, y)
-        cond_out: Float[Tensor, " BS MOC TSL"] = model_out[:BS]
-        uncond_out: Float[Tensor, " BS MOC TSL"] = model_out[BS:]
-        out: Float[Tensor, " BS MOC TSL"] = uncond_out + rearrange(
+        t: Int[Tensor, "BSx2"] = t.repeat(2)
+        model_out: Float[Tensor, "BSx2 MOC TSL"] = self.forward(x, t, y)
+        cond_out: Float[Tensor, "BS MOC TSL"] = model_out[:BS]
+        uncond_out: Float[Tensor, "BS MOC TSL"] = model_out[BS:]
+        out: Float[Tensor, "BS MOC TSL"] = uncond_out + rearrange(
             cfg_scales,
             "BS -> BS 1 1",
         ) * (cond_out - uncond_out)

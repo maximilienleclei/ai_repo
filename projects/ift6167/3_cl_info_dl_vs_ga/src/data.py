@@ -127,9 +127,9 @@ def load_human_data(
     holdout_pct: float = 0.1,
 ) -> tuple[
     Float[Tensor, "optim_size input_size"],
-    Int[Tensor, " optim_size"],
+    Int[Tensor, "optim_size"],
     Float[Tensor, "test_size input_size"],
-    Int[Tensor, " test_size"],
+    Int[Tensor, "test_size"],
     dict,
 ]:
     """Load human behavior data from JSON files with random run holdout.
@@ -322,11 +322,11 @@ def load_human_data(
     optim_obs: Float[Tensor, "optim_size input_size"] = torch.from_numpy(
         optim_obs_np
     )
-    optim_act: Int[Tensor, " optim_size"] = torch.from_numpy(optim_act_np)
+    optim_act: Int[Tensor, "optim_size"] = torch.from_numpy(optim_act_np)
     test_obs: Float[Tensor, "test_size input_size"] = torch.from_numpy(
         test_obs_np
     )
-    test_act: Int[Tensor, " test_size"] = torch.from_numpy(test_act_np)
+    test_act: Int[Tensor, "test_size"] = torch.from_numpy(test_act_np)
 
     # Create metadata dictionary
     metadata: dict = {

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 def to_wandb_image(
-    data: Float[Tensor, " TNC TSL"] | Float[Tensor, " CNC CSL"],
+    data: Float[Tensor, "TNC TSL"] | Float[Tensor, "CNC CSL"],
 ) -> wandb.Image:
     plt.figure()
     log.debug(f"data.shape: {data.shape}")

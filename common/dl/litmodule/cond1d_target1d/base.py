@@ -50,8 +50,8 @@ class BaseCond1DTarget1DPredLitModule(BaseLitModule, ABC):
     def save_conditioning_target_features(
         self: "BaseCond1DTarget1DPredLitModule",
         stage: An[str, one_of("train", "val", "test")],
-        y: Float[Tensor, " BS CNC CSL"],
-        x: Float[Tensor, " BS HNC TSL"],
+        y: Float[Tensor, "BS CNC CSL"],
+        x: Float[Tensor, "BS HNC TSL"],
     ) -> None:
         data = (
             self.wandb_train_data if stage == "train" else self.wandb_val_data

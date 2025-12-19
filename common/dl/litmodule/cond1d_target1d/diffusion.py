@@ -17,11 +17,11 @@ import torch
 from jaxtyping import Float, Int
 from torch import Tensor
 
-from common.dl.litmodule.nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
 from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,
 )
+from common.dl.litmodule.nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
 from common.dl.litmodule.utils import to_wandb_image
 from common.dl.utils.diffusion import create_diffusion
 from common.utils.beartype import one_of
@@ -62,11 +62,11 @@ class Cond1DTarget1DDiffusionLitModule(BaseCond1DTarget1DPredLitModule):
         self: "Cond1DTarget1DDiffusionLitModule",
         data: dict[str, Tensor],
         stage: An[str, one_of("train", "val", "test")],
-    ) -> Float[Tensor, " "]:
-        x: Float[Tensor, " BS 4 TSL"] = data["Cond1DTarget1Ds"]
-        y: Float[Tensor, " BS CNC CSL"] = data["audio_stfts"]
+    ) -> Float[Tensor, ""]:
+        x: Float[Tensor, "BS 4 TSL"] = data["Cond1DTarget1Ds"]
+        y: Float[Tensor, "BS CNC CSL"] = data["audio_stfts"]
         self.save_conditioning_target_features(stage, y, x)
-        t: Int[Tensor, " BS"] = torch.randint(
+        t: Int[Tensor, "BS"] = torch.randint(
             low=0,
             high=self.diffusion.num_timesteps,
             size=(x.shape[0],),

@@ -51,11 +51,11 @@ class FNN(nn.Module):
 
     def forward(
         self: "FNN",
-        x: Float[Tensor, " BS *_ NIF"],
-    ) -> Float[Tensor, " BS *_ NOF"]:
+        x: Float[Tensor, "BS *_ NIF"],
+    ) -> Float[Tensor, "BS *_ NOF"]:
         if self.config.flatten:
             x = rearrange(x, "BS ... -> BS (...)")
         log.debug(f"x.shape: {x.shape}")
-        x: Float[Tensor, " BS *_ NOF"] = self.model(x)
+        x: Float[Tensor, "BS *_ NOF"] = self.model(x)
         log.debug(f"x.shape: {x.shape}")
         return x

@@ -13,7 +13,7 @@ from .models import MLP
 def compute_cross_entropy(
     model: MLP,
     observations: Float[Tensor, "N input_size"],
-    actions: Int[Tensor, " N"],
+    actions: Int[Tensor, "N"],
 ) -> Float[Tensor, ""]:
     """Compute cross-entropy loss."""
     logits: Float[Tensor, "N output_size"] = model(observations)
@@ -24,7 +24,7 @@ def compute_cross_entropy(
 def compute_macro_f1(
     model: MLP,
     observations: Float[Tensor, "N input_size"],
-    actions: Int[Tensor, " N"],
+    actions: Int[Tensor, "N"],
     num_samples: int = 10,
     num_classes: int = 2,
 ) -> float:
@@ -33,7 +33,7 @@ def compute_macro_f1(
 
     f1_scores: list[float] = []
     for _ in range(num_samples):
-        sampled_actions: Int[Tensor, " N"] = torch.multinomial(
+        sampled_actions: Int[Tensor, "N"] = torch.multinomial(
             probs, num_samples=1
         ).squeeze(-1)
         f1: float = f1_score(

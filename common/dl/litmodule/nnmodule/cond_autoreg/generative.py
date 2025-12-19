@@ -52,9 +52,9 @@ class CGAM(BaseCAM):
 
     def compute_loss(
         self: "CGAM",
-        predicted_logits: Float[Tensor, " BS SL NOL"],
-        target_features: Float[Tensor, " BS SL NTF"],
-    ) -> Float[Tensor, " "]:
+        predicted_logits: Float[Tensor, "BS SL NOL"],
+        target_features: Float[Tensor, "BS SL NTF"],
+    ) -> Float[Tensor, ""]:
         log_pi, mu, sigma = self.convert_logits_to_gaussian_mixture_parameters(
             predicted_logits,
         )
@@ -64,7 +64,7 @@ class CGAM(BaseCAM):
             pattern="BS SL NTF -> BS SL 1 NTF",
         )
         gaussian_distribution = Normal(loc=mu, scale=sigma)
-        log_prob: Float[Tensor, " BS SL NG NTF"] = (
+        log_prob: Float[Tensor, "BS SL NG NTF"] = (
             gaussian_distribution.log_prob(value=target_features)
         )
         log_prob_per_gaussian = reduce(
@@ -72,10 +72,10 @@ class CGAM(BaseCAM):
             pattern="BS SL NG NTF -> BS SL NG",
             reduction=torch.sum,
         )
-        weighted_log_prob_per_gaussian: Float[Tensor, " BS SL NG"] = (
+        weighted_log_prob_per_gaussian: Float[Tensor, "BS SL NG"] = (
             log_pi + log_prob_per_gaussian
         )
-        log_likelihood: Float[Tensor, " BS SL"] = reduce(
+        log_likelihood: Float[Tensor, "BS SL"] = reduce(
             tensor=weighted_log_prob_per_gaussian,
             pattern="BS SL NG -> BS SL",
             reduction=torch.logsumexp,
@@ -84,9 +84,9 @@ class CGAM(BaseCAM):
 
     def predict_sequence_logits_and_features_fitting(
         self: "CGAM",
-        conditioning_sequence_features: Float[Tensor, " BS SL NCF"],
-        target_sequence_features: Float[Tensor, " BS SL NTF"],
-    ) -> tuple[Float[Tensor, " BS SL NOL"], Float[Tensor, " BS SL NTF"]]:
+        conditioning_sequence_features: Float[Tensor, "BS SL NCF"],
+        target_sequence_features: Float[Tensor, "BS SL NTF"],
+    ) -> tuple[Float[Tensor, "BS SL NOL"], Float[Tensor, "BS SL NTF"]]:
         predicted_sequence_logits = self.predict_sequence_logits_fitting(
             conditioning_sequence_features,
             target_sequence_features,
@@ -98,28 +98,28 @@ class CGAM(BaseCAM):
 
     def predict_timestep_features_inference(
         self: "CGAM",
-        predicted_timestep_logits: Float[Tensor, " BS 1 NOL"],
-    ) -> Float[Tensor, " BS 1 NTF"]:
+        predicted_timestep_logits: Float[Tensor, "BS 1 NOL"],
+    ) -> Float[Tensor, "BS 1 NTF"]:
         return self.predict_features(predicted_timestep_logits)
 
     def predict_features(
         self: "CGAM",
         predicted_logits: (
-            Float[Tensor, " BS SL NOL"] | Float[Tensor, " BS 1 NOL"]
+            Float[Tensor, "BS SL NOL"] | Float[Tensor, "BS 1 NOL"]
         ),
-    ) -> Float[Tensor, " BS SL NTF"] | Float[Tensor, " BS 1 NTF"]:
+    ) -> Float[Tensor, "BS SL NTF"] | Float[Tensor, "BS 1 NTF"]:
         log_pi, mu, sigma = self.convert_logits_to_gaussian_mixture_parameters(
             predicted_logits,
         )
         BS, SL, _, NTF = mu.shape
-        pi: Float[Tensor, " BS SL NG"] = torch.exp(log_pi)
+        pi: Float[Tensor, "BS SL NG"] = torch.exp(log_pi)
         pi = pi.clamp_min(1e-8)
         pi = pi / (pi.sum(dim=-1, keepdim=True) + 1e-8)
         flat_pi = rearrange(
             tensor=pi,
             pattern="BS SL NG -> (BS SL) NG",
         )  # Required for the `torch.multinomial` operation
-        flat_indices: Int[Tensor, " BSxSL 1"] = torch.multinomial(
+        flat_indices: Int[Tensor, "BSxSL 1"] = torch.multinomial(
             input=flat_pi,
             num_samples=1,
         )
@@ -134,12 +134,12 @@ class CGAM(BaseCAM):
             pattern="BS SL 1 -> BS SL 1 NTF",
             NTF=NTF,
         )
-        sampled_mu: Float[Tensor, " BS SL NTF"] = torch.gather(
+        sampled_mu: Float[Tensor, "BS SL NTF"] = torch.gather(
             input=mu,
             dim=2,
             index=repeated_indices,
         ).squeeze(dim=-2)
-        sampled_sigma: Float[Tensor, " BS SL NTF"] = torch.gather(
+        sampled_sigma: Float[Tensor, "BS SL NTF"] = torch.gather(
             input=sigma,  # BS SL NG NTF
             dim=2,  # NG
             index=repeated_indices,
@@ -148,39 +148,39 @@ class CGAM(BaseCAM):
 
     def convert_logits_to_gaussian_mixture_parameters(
         self: "CGAM",
-        predicted_logits: Float[Tensor, " BS SL NOL"],
+        predicted_logits: Float[Tensor, "BS SL NOL"],
     ) -> tuple[
-        Float[Tensor, " BS SL NG"],
-        Float[Tensor, " BS SL NG NTF"],
-        Float[Tensor, " BS SL NG NTF"],
+        Float[Tensor, "BS SL NG"],
+        Float[Tensor, "BS SL NG NTF"],
+        Float[Tensor, "BS SL NG NTF"],
     ]:
         x = self.norm(predicted_logits)
-        pi_logits: Float[Tensor, " BS SL NG"] = x[
+        pi_logits: Float[Tensor, "BS SL NG"] = x[
             ...,
             : self.config.num_gaussians,
         ]
-        mu: Float[Tensor, " BS SL NGxNTF"] = x[
+        mu: Float[Tensor, "BS SL NGxNTF"] = x[
             ...,
             self.config.num_gaussians : self.config.num_gaussians
             + self.config.num_gaussians * self.config.num_target_features,
         ]
-        log_sigma: Float[Tensor, " BS SL NGxNTF"] = x[
+        log_sigma: Float[Tensor, "BS SL NGxNTF"] = x[
             ...,
             self.config.num_gaussians
             + self.config.num_gaussians * self.config.num_target_features :,
         ]
         log_sigma = torch.clamp(log_sigma, min=-10.0, max=10.0)
         # temperature goes here, replace with pi_logits / temperature
-        log_pi: Float[Tensor, " BS SL NG"] = f.log_softmax(pi_logits, dim=-1)
-        mu: Float[Tensor, " BS SL NG NTF"] = rearrange(
+        log_pi: Float[Tensor, "BS SL NG"] = f.log_softmax(pi_logits, dim=-1)
+        mu: Float[Tensor, "BS SL NG NTF"] = rearrange(
             tensor=mu,
             pattern="BS SL (NG NTF) -> BS SL NG NTF",
             NG=self.config.num_gaussians,
         )
-        log_sigma: Float[Tensor, " BS SL NG NTF"] = rearrange(
+        log_sigma: Float[Tensor, "BS SL NG NTF"] = rearrange(
             tensor=log_sigma,
             pattern="BS SL (NG NTF) -> BS SL NG NTF",
             NG=self.config.num_gaussians,
         )
-        sigma: Float[Tensor, " BS SL NG NTF"] = torch.exp(log_sigma)
+        sigma: Float[Tensor, "BS SL NG NTF"] = torch.exp(log_sigma)
         return log_pi, mu, sigma

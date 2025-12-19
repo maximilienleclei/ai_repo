@@ -18,11 +18,11 @@ from einops import rearrange
 from jaxtyping import Float
 from torch import Tensor
 
-from common.dl.litmodule.nnmodule.cond_autoreg.base import BaseCAM
 from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,
 )
+from common.dl.litmodule.nnmodule.cond_autoreg.base import BaseCAM
 from common.dl.litmodule.utils import to_wandb_image
 from common.utils.beartype import one_of
 
@@ -60,14 +60,14 @@ class Cond1DTarget1DAutoregressionLitModule(BaseCond1DTarget1DPredLitModule):
         self: "Cond1DTarget1DAutoregressionLitModule",
         data: dict[str, Tensor],
         stage: An[str, one_of("train", "val", "test")],
-    ) -> Float[Tensor, " "]:
-        x: Float[Tensor, " BS TSL HNC"] = data["Cond1DTarget1Ds"]
+    ) -> Float[Tensor, ""]:
+        x: Float[Tensor, "BS TSL HNC"] = data["Cond1DTarget1Ds"]
         x = x[..., : self.config.Cond1DTarget1D_num_channels]
         if self.config.temp_gt0_Cond1DTarget1D_data:
             x = torch.clamp(x, min=0.0)
         if self.config.binarize_Cond1DTarget1D_data:
             x = (x.abs() > self.config.accuracy_binarization_threshold).float()
-        y: Float[Tensor, " BS TSL CNC"] = data["audio_stfts"]
+        y: Float[Tensor, "BS TSL CNC"] = data["audio_stfts"]
         self.save_conditioning_target_features(
             stage,
             rearrange(y, "BS TSL CNC -> BS CNC TSL"),
@@ -133,9 +133,9 @@ class Cond1DTarget1DAutoregressionLitModule(BaseCond1DTarget1DPredLitModule):
 
     def compute_and_log_metrics(
         self: "Cond1DTarget1DAutoregressionLitModule",
-        x: Float[Tensor, " BS TSL HNC"],
-        x_hat: Float[Tensor, " BS TSL HNC"],
-        loss: Float[Tensor, " "],
+        x: Float[Tensor, "BS TSL HNC"],
+        x_hat: Float[Tensor, "BS TSL HNC"],
+        loss: Float[Tensor, ""],
         stage: An[
             str,
             one_of(
@@ -149,21 +149,21 @@ class Cond1DTarget1DAutoregressionLitModule(BaseCond1DTarget1DPredLitModule):
         ],
     ) -> None:
         self.log(name=f"{stage}/loss", value=loss)
-        mse: Float[Tensor, " "] = f.mse_loss(x_hat, x)
+        mse: Float[Tensor, ""] = f.mse_loss(x_hat, x)
         self.log(name=f"{stage}/mse", value=mse)
-        binary_x: Float[Tensor, " BS TSL HNC"] = (
+        binary_x: Float[Tensor, "BS TSL HNC"] = (
             x.abs() > self.config.accuracy_binarization_threshold
         ).float()
-        binary_x_hat: Float[Tensor, " BS TSL HNC"] = (
+        binary_x_hat: Float[Tensor, "BS TSL HNC"] = (
             x_hat.abs() > self.config.accuracy_binarization_threshold
         ).float()
-        acc: Float[Tensor, " "] = tmf.accuracy(
+        acc: Float[Tensor, ""] = tmf.accuracy(
             preds=binary_x_hat,
             target=binary_x,
             task="binary",
         )
         self.log(name=f"{stage}/acc", value=acc)
-        f1: Float[Tensor, " "] = tmf.f1_score(
+        f1: Float[Tensor, ""] = tmf.f1_score(
             preds=binary_x_hat,
             target=binary_x,
             task="binary",

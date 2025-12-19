@@ -20,7 +20,7 @@ from .config import (
 )
 from .data import load_human_data
 from .environment import get_max_episode_steps, get_success_threshold, make_env
-from .models import BatchedPopulation, MLP
+from .models import MLP, BatchedPopulation
 
 
 def load_model_from_checkpoint(
@@ -29,7 +29,7 @@ def load_model_from_checkpoint(
     output_size: int,
     hidden_size: int,
     test_obs: Float[Tensor, "test_size input_size"] | None = None,
-    test_act: Int[Tensor, " test_size"] | None = None,
+    test_act: Int[Tensor, "test_size"] | None = None,
 ) -> MLP:
     """Load optimized MLP from checkpoint.
 
@@ -83,10 +83,10 @@ def load_model_from_checkpoint(
             test_obs_device: Float[Tensor, "test_size input_size"] = (
                 test_obs.to(config.DEVICE)
             )
-            test_act_device: Int[Tensor, " test_size"] = test_act.to(
+            test_act_device: Int[Tensor, "test_size"] = test_act.to(
                 config.DEVICE
             )
-            fitness: Float[Tensor, " pop_size"] = population.evaluate(
+            fitness: Float[Tensor, "pop_size"] = population.evaluate(
                 test_obs_device, test_act_device
             )
         else:
@@ -136,14 +136,14 @@ def run_episode(
         obs, _ = env.reset(seed=seed)
     else:
         obs, _ = env.reset()
-    obs_tensor: Float[Tensor, " obs_dim"] = (
+    obs_tensor: Float[Tensor, "obs_dim"] = (
         torch.from_numpy(obs).float().to(config.DEVICE)
     )
 
     # Append CL features if provided
     use_cl_features: bool = norm_session is not None and norm_run is not None
     if use_cl_features:
-        cl_features: Float[Tensor, " 2"] = torch.tensor(
+        cl_features: Float[Tensor, "2"] = torch.tensor(
             [norm_session, norm_run], dtype=torch.float32, device=config.DEVICE
         )
         obs_tensor = torch.cat([obs_tensor, cl_features])
@@ -159,7 +159,7 @@ def run_episode(
 
         # Get action from model
         with torch.no_grad():
-            probs: Float[Tensor, " action_dim"] = model.get_probs(
+            probs: Float[Tensor, "action_dim"] = model.get_probs(
                 obs_tensor.unsqueeze(0)
             ).squeeze(0)
             action: int = torch.multinomial(probs, num_samples=1).item()
@@ -526,7 +526,7 @@ def evaluate_all_methods(
         test_obs: Float[Tensor, "test_size input_size"] = (
             test_obs_with_cl if use_cl_info else test_obs_no_cl
         )
-        test_act: Int[Tensor, " test_size"] = (
+        test_act: Int[Tensor, "test_size"] = (
             test_act_with_cl if use_cl_info else test_act_no_cl
         )
 

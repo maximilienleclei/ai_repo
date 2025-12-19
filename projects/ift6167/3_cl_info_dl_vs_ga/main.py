@@ -9,12 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from jaxtyping import Float, Int
-from torch import Tensor
-
-from src.plot import (
-    create_all_plots,
-    create_comparison_table,
-)
 from src import config
 from src.config import (
     ENV_CONFIGS,
@@ -25,7 +19,9 @@ from src.config import (
 )
 from src.data import load_human_data
 from src.optim import deeplearn, neuroevolve
+from src.plot import create_all_plots, create_comparison_table
 from src.utils import set_random_seeds
+from torch import Tensor
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -58,9 +54,9 @@ def run_single_method(
     method_config: dict,
     use_cl_info: bool,
     optim_obs: Float[Tensor, "optim_size input_size"],
-    optim_act: Int[Tensor, " optim_size"],
+    optim_act: Int[Tensor, "optim_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     exp_config: ExperimentConfig,
@@ -186,8 +182,8 @@ def main() -> None:
         print(f"{'='*60}")
 
         # Load human data
-        from src.evaluation import compare_returns
         import numpy as np
+        from src.evaluation import compare_returns
 
         print(f"\nLoading human data...")
         _, _, _, _, metadata = load_human_data(

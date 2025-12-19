@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from . import config
 from .config import RESULTS_DIR, ExperimentConfig
 from .metrics import compute_cross_entropy, compute_macro_f1
-from .models import BatchedPopulation, MLP
+from .models import MLP, BatchedPopulation
 from .utils import save_results
 
 
@@ -50,13 +50,13 @@ def evaluate_progression(
 
             # Reset with seed
             obs, _ = env.reset(seed=seed)
-            obs_tensor: Float[Tensor, " obs_dim"] = (
+            obs_tensor: Float[Tensor, "obs_dim"] = (
                 torch.from_numpy(obs).float().to(config.DEVICE)
             )
 
             # Append CL features if provided in episode details
             if use_cl_features:
-                cl_features: Float[Tensor, " 2"] = torch.tensor(
+                cl_features: Float[Tensor, "2"] = torch.tensor(
                     [ep_detail["norm_session"], ep_detail["norm_run"]],
                     dtype=torch.float32,
                     device=config.DEVICE,
@@ -70,7 +70,7 @@ def evaluate_progression(
 
             while step < max_steps and not (terminated or truncated):
                 # Get action from model
-                probs: Float[Tensor, " action_dim"] = model.get_probs(
+                probs: Float[Tensor, "action_dim"] = model.get_probs(
                     obs_tensor.unsqueeze(0)
                 ).squeeze(0)
                 action: int = torch.multinomial(probs, num_samples=1).item()
@@ -107,9 +107,9 @@ def evaluate_progression(
 
 def deeplearn(
     optim_obs: Float[Tensor, "optim_size input_size"],
-    optim_act: Int[Tensor, " optim_size"],
+    optim_act: Int[Tensor, "optim_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     exp_config: ExperimentConfig,
@@ -133,7 +133,7 @@ def deeplearn(
     test_obs_gpu: Float[Tensor, "test_size input_size"] = test_obs.to(
         config.DEVICE
     )
-    test_act_gpu: Int[Tensor, " test_size"] = test_act.to(config.DEVICE)
+    test_act_gpu: Int[Tensor, "test_size"] = test_act.to(config.DEVICE)
 
     loss_history: list[float] = []
     test_loss_history: list[float] = []
@@ -154,7 +154,7 @@ def deeplearn(
     use_cl_features_flag: bool = False
 
     if track_progression:
-        from .environment import make_env, get_max_episode_steps
+        from .environment import get_max_episode_steps, make_env
         from .evaluation import load_human_episode_details
 
         print(
@@ -218,7 +218,7 @@ def deeplearn(
             batch_obs_gpu: Float[Tensor, "BS input_size"] = batch_obs.to(
                 config.DEVICE
             )
-            batch_act_gpu: Int[Tensor, " BS"] = batch_act.to(config.DEVICE)
+            batch_act_gpu: Int[Tensor, "BS"] = batch_act.to(config.DEVICE)
 
             optimizer.zero_grad()
             loss: Float[Tensor, ""] = compute_cross_entropy(
@@ -349,9 +349,9 @@ def deeplearn(
 
 def neuroevolve(
     optim_obs: Float[Tensor, "optim_size input_size"],
-    optim_act: Int[Tensor, " optim_size"],
+    optim_act: Int[Tensor, "optim_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     exp_config: ExperimentConfig,
@@ -365,11 +365,11 @@ def neuroevolve(
     optim_obs_gpu: Float[Tensor, "optim_size input_size"] = optim_obs.to(
         config.DEVICE
     )
-    optim_act_gpu: Int[Tensor, " optim_size"] = optim_act.to(config.DEVICE)
+    optim_act_gpu: Int[Tensor, "optim_size"] = optim_act.to(config.DEVICE)
     test_obs_gpu: Float[Tensor, "test_size input_size"] = test_obs.to(
         config.DEVICE
     )
-    test_act_gpu: Int[Tensor, " test_size"] = test_act.to(config.DEVICE)
+    test_act_gpu: Int[Tensor, "test_size"] = test_act.to(config.DEVICE)
 
     # Sample a subset for fitness evaluation
     num_optim: int = optim_obs_gpu.shape[0]
@@ -403,7 +403,7 @@ def neuroevolve(
     use_cl_features_flag: bool = False
 
     if track_progression:
-        from .environment import make_env, get_max_episode_steps
+        from .environment import get_max_episode_steps, make_env
         from .evaluation import load_human_episode_details
 
         print(
@@ -467,13 +467,13 @@ def neuroevolve(
             print(f"  Time limit reached ({elapsed_time:.1f}s)")
             break
         # Sample batch for this generation
-        batch_indices: Int[Tensor, " eval_batch_size"] = torch.randperm(
+        batch_indices: Int[Tensor, "eval_batch_size"] = torch.randperm(
             num_optim, device=config.DEVICE
         )[:eval_batch_size]
         batch_obs: Float[Tensor, "eval_batch_size input_size"] = optim_obs_gpu[
             batch_indices
         ]
-        batch_act: Int[Tensor, " eval_batch_size"] = optim_act_gpu[
+        batch_act: Int[Tensor, "eval_batch_size"] = optim_act_gpu[
             batch_indices
         ]
 
@@ -481,7 +481,7 @@ def neuroevolve(
         population.mutate()
 
         # Evaluation (batched on GPU)
-        fitness: Float[Tensor, " pop_size"] = population.evaluate(
+        fitness: Float[Tensor, "pop_size"] = population.evaluate(
             batch_obs, batch_act
         )
 

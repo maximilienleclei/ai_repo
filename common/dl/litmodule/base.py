@@ -147,17 +147,17 @@ class BaseLitModule(LightningModule, ABC):
         self: "BaseLitModule",
         data,
         stage: An[str, one_of("train", "val", "test", "predict")],
-    ) -> Num[Tensor, " *_"]: ...
+    ) -> Num[Tensor, "*_"]: ...
 
     @final
     def stage_step(
         self: "BaseLitModule",
         data: Any,
         stage: An[str, one_of("train", "val", "test", "predict")],
-    ) -> Num[Tensor, " *_"]:
+    ) -> Num[Tensor, "*_"]:
         if isinstance(data, list):
             data = tuple(data)
-        loss: Num[Tensor, " *_"] = self.step(data, stage)
+        loss: Num[Tensor, "*_"] = self.step(data, stage)
         self.log(name=f"{stage}/loss", value=loss)
         return loss
 
@@ -165,7 +165,7 @@ class BaseLitModule(LightningModule, ABC):
     def training_step(
         self: "BaseLitModule",
         data: Any,
-    ) -> Num[Tensor, " *_"]:
+    ) -> Num[Tensor, "*_"]:
         return self.stage_step(data=data, stage="train")
 
     @final
@@ -177,14 +177,14 @@ class BaseLitModule(LightningModule, ABC):
         # :meth:`LightningModule.validation_step`\'s signature.
         *args: Any,
         **kwargs: Any,
-    ) -> Num[Tensor, " *_"]:
+    ) -> Num[Tensor, "*_"]:
         return self.stage_step(data=data, stage="val")
 
     @final
     def test_step(
         self: "BaseLitModule",
         data: Any,
-    ) -> Num[Tensor, " *_"]:
+    ) -> Num[Tensor, "*_"]:
         return self.stage_step(data=data, stage="test")
 
     @final

@@ -9,14 +9,14 @@ from typing import Annotated as An
 
 import filelock
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-from matplotlib.ticker import LogLocator, LogFormatter
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from datasets import load_dataset
 from jaxtyping import Float, Int
+from matplotlib.lines import Line2D
+from matplotlib.ticker import LogFormatter, LogLocator
 from sklearn.metrics import f1_score
 from torch import Tensor
 from torch.utils.data import DataLoader, TensorDataset
@@ -485,12 +485,12 @@ def update_plot(dataset_name: str, interactive: bool = False) -> None:
 
 def subsample_train_data(
     train_obs: Float[Tensor, "train_size input_size"],
-    train_act: Int[Tensor, " train_size"],
+    train_act: Int[Tensor, "train_size"],
     dataset_size_abs: int,
     full_dataset_size: int,
 ) -> tuple[
     Float[Tensor, "subset_size input_size"],
-    Int[Tensor, " subset_size"],
+    Int[Tensor, "subset_size"],
 ]:
     """Subsample training data to specified absolute number of samples.
 
@@ -517,7 +517,7 @@ def subsample_train_data(
     subset_obs: Float[Tensor, "subset_size input_size"] = train_obs[
         :dataset_size_abs
     ]
-    subset_act: Int[Tensor, " subset_size"] = train_act[:dataset_size_abs]
+    subset_act: Int[Tensor, "subset_size"] = train_act[:dataset_size_abs]
 
     print(
         f"  Subsampled train set from {available_size} to {subset_obs.shape[0]} samples"
@@ -527,9 +527,9 @@ def subsample_train_data(
 
 def load_cartpole_data() -> tuple[
     Float[Tensor, "train_size 4"],
-    Int[Tensor, " train_size"],
+    Int[Tensor, "train_size"],
     Float[Tensor, "test_size 4"],
-    Int[Tensor, " test_size"],
+    Int[Tensor, "test_size"],
 ]:
     """Load CartPole-v1 dataset from HuggingFace."""
     dataset = load_dataset("NathanGavenski/CartPole-v1")
@@ -541,21 +541,21 @@ def load_cartpole_data() -> tuple[
 
     print("  Converting to tensors...")
     obs_tensor: Float[Tensor, "N 4"] = torch.from_numpy(obs_np)
-    act_tensor: Int[Tensor, " N"] = torch.from_numpy(act_np)
+    act_tensor: Int[Tensor, "N"] = torch.from_numpy(act_np)
 
     # Shuffle
     print("  Shuffling...")
     num_samples: int = obs_tensor.shape[0]
-    perm: Int[Tensor, " N"] = torch.randperm(num_samples)
+    perm: Int[Tensor, "N"] = torch.randperm(num_samples)
     obs_tensor = obs_tensor[perm]
     act_tensor = act_tensor[perm]
 
     # Split
     train_size: int = int(num_samples * 0.9)
     train_obs: Float[Tensor, "train_size 4"] = obs_tensor[:train_size]
-    train_act: Int[Tensor, " train_size"] = act_tensor[:train_size]
+    train_act: Int[Tensor, "train_size"] = act_tensor[:train_size]
     test_obs: Float[Tensor, "test_size 4"] = obs_tensor[train_size:]
-    test_act: Int[Tensor, " test_size"] = act_tensor[train_size:]
+    test_act: Int[Tensor, "test_size"] = act_tensor[train_size:]
 
     print(
         f"  Done: {train_obs.shape[0]} train, {test_obs.shape[0]} test samples"
@@ -565,9 +565,9 @@ def load_cartpole_data() -> tuple[
 
 def load_lunarlander_data() -> tuple[
     Float[Tensor, "train_size 8"],
-    Int[Tensor, " train_size"],
+    Int[Tensor, "train_size"],
     Float[Tensor, "test_size 8"],
-    Int[Tensor, " test_size"],
+    Int[Tensor, "test_size"],
 ]:
     """Load LunarLander-v2 dataset from HuggingFace."""
     dataset = load_dataset("NathanGavenski/LunarLander-v2")
@@ -579,21 +579,21 @@ def load_lunarlander_data() -> tuple[
 
     print("  Converting to tensors...")
     obs_tensor: Float[Tensor, "N 8"] = torch.from_numpy(obs_np)
-    act_tensor: Int[Tensor, " N"] = torch.from_numpy(act_np)
+    act_tensor: Int[Tensor, "N"] = torch.from_numpy(act_np)
 
     # Shuffle
     print("  Shuffling...")
     num_samples: int = obs_tensor.shape[0]
-    perm: Int[Tensor, " N"] = torch.randperm(num_samples)
+    perm: Int[Tensor, "N"] = torch.randperm(num_samples)
     obs_tensor = obs_tensor[perm]
     act_tensor = act_tensor[perm]
 
     # Split
     train_size: int = int(num_samples * 0.9)
     train_obs: Float[Tensor, "train_size 8"] = obs_tensor[:train_size]
-    train_act: Int[Tensor, " train_size"] = act_tensor[:train_size]
+    train_act: Int[Tensor, "train_size"] = act_tensor[:train_size]
     test_obs: Float[Tensor, "test_size 8"] = obs_tensor[train_size:]
-    test_act: Int[Tensor, " test_size"] = act_tensor[train_size:]
+    test_act: Int[Tensor, "test_size"] = act_tensor[train_size:]
 
     print(
         f"  Done: {train_obs.shape[0]} train, {test_obs.shape[0]} test samples"
@@ -631,7 +631,7 @@ class MLP(nn.Module):
 def compute_cross_entropy(
     model: MLP,
     observations: Float[Tensor, "N input_size"],
-    actions: Int[Tensor, " N"],
+    actions: Int[Tensor, "N"],
 ) -> Float[Tensor, ""]:
     """Compute cross-entropy loss."""
     logits: Float[Tensor, "N output_size"] = model(observations)
@@ -642,7 +642,7 @@ def compute_cross_entropy(
 def compute_macro_f1(
     model: MLP,
     observations: Float[Tensor, "N input_size"],
-    actions: Int[Tensor, " N"],
+    actions: Int[Tensor, "N"],
     num_samples: int = 10,
     num_classes: int = 2,
 ) -> float:
@@ -651,7 +651,7 @@ def compute_macro_f1(
 
     f1_scores: list[float] = []
     for _ in range(num_samples):
-        sampled_actions: Int[Tensor, " N"] = torch.multinomial(
+        sampled_actions: Int[Tensor, "N"] = torch.multinomial(
             probs, num_samples=1
         ).squeeze(-1)
         f1: float = f1_score(
@@ -668,9 +668,9 @@ def compute_macro_f1(
 
 def train_deep_learning(
     train_obs: Float[Tensor, "train_size input_size"],
-    train_act: Int[Tensor, " train_size"],
+    train_act: Int[Tensor, "train_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     config: ExperimentConfig,
@@ -687,7 +687,7 @@ def train_deep_learning(
     )
 
     test_obs_gpu: Float[Tensor, "test_size input_size"] = test_obs.to(DEVICE)
-    test_act_gpu: Int[Tensor, " test_size"] = test_act.to(DEVICE)
+    test_act_gpu: Int[Tensor, "test_size"] = test_act.to(DEVICE)
 
     loss_history: list[float] = []
     test_loss_history: list[float] = []
@@ -720,7 +720,7 @@ def train_deep_learning(
             batch_obs_gpu: Float[Tensor, "BS input_size"] = batch_obs.to(
                 DEVICE
             )
-            batch_act_gpu: Int[Tensor, " BS"] = batch_act.to(DEVICE)
+            batch_act_gpu: Int[Tensor, "BS"] = batch_act.to(DEVICE)
 
             optimizer.zero_grad()
             loss: Float[Tensor, ""] = compute_cross_entropy(
@@ -918,11 +918,11 @@ class BatchedPopulation:
     def evaluate(
         self,
         observations: Float[Tensor, "N input_size"],
-        actions: Int[Tensor, " N"],
+        actions: Int[Tensor, "N"],
         fitness_type: str = "cross_entropy",
         num_classes: int = 2,
         num_f1_samples: int = 10,
-    ) -> Float[Tensor, " pop_size"]:
+    ) -> Float[Tensor, "pop_size"]:
         """Evaluate fitness of all networks in parallel."""
         with torch.no_grad():
             # Get logits for all networks: [pop_size, N, output_size]
@@ -941,20 +941,18 @@ class BatchedPopulation:
                 flat_logits: Float[Tensor, "pop_sizexN output_size"] = (
                     all_logits.view(-1, self.output_size)
                 )
-                flat_actions: Int[Tensor, " pop_sizexN"] = (
+                flat_actions: Int[Tensor, "pop_sizexN"] = (
                     actions_expanded.reshape(-1)
                 )
 
                 # Compute per-sample CE then reshape and mean per network
-                per_sample_ce: Float[Tensor, " pop_sizexN"] = F.cross_entropy(
+                per_sample_ce: Float[Tensor, "pop_sizexN"] = F.cross_entropy(
                     flat_logits, flat_actions, reduction="none"
                 )
                 per_network_ce: Float[Tensor, "pop_size N"] = (
                     per_sample_ce.view(self.pop_size, -1)
                 )
-                fitness: Float[Tensor, " pop_size"] = per_network_ce.mean(
-                    dim=1
-                )
+                fitness: Float[Tensor, "pop_size"] = per_network_ce.mean(dim=1)
             else:  # macro_f1
                 # F1 requires sampling and sklearn, so we need to loop
                 # But we can still batch the probability computation
@@ -967,7 +965,7 @@ class BatchedPopulation:
                     probs_i: Float[Tensor, "N output_size"] = all_probs[i]
                     f1_trials: list[float] = []
                     for _ in range(num_f1_samples):
-                        sampled: Int[Tensor, " N"] = torch.multinomial(
+                        sampled: Int[Tensor, "N"] = torch.multinomial(
                             probs_i, num_samples=1
                         ).squeeze(-1)
                         f1_val: float = f1_score(
@@ -986,29 +984,29 @@ class BatchedPopulation:
         return fitness
 
     def select_simple_ga(
-        self, fitness: Float[Tensor, " pop_size"], minimize: bool = False
+        self, fitness: Float[Tensor, "pop_size"], minimize: bool = False
     ) -> None:
         """Simple GA selection: top 50% survive and duplicate (vectorized)."""
         # Sort by fitness
-        sorted_indices: Int[Tensor, " pop_size"] = torch.argsort(
+        sorted_indices: Int[Tensor, "pop_size"] = torch.argsort(
             fitness, descending=not minimize
         )
 
         # Top 50% survive
         num_survivors: int = self.pop_size // 2
-        survivor_indices: Int[Tensor, " num_survivors"] = sorted_indices[
+        survivor_indices: Int[Tensor, "num_survivors"] = sorted_indices[
             :num_survivors
         ]
 
         # Create mapping: each loser gets replaced by a survivor
         # Loser i gets survivor[i % num_survivors]
         num_losers: int = self.pop_size - num_survivors
-        replacement_indices: Int[Tensor, " num_losers"] = survivor_indices[
+        replacement_indices: Int[Tensor, "num_losers"] = survivor_indices[
             torch.arange(num_losers, device=DEVICE) % num_survivors
         ]
 
         # Full new indices: survivors keep their params, losers get survivor params
-        new_indices: Int[Tensor, " pop_size"] = torch.cat(
+        new_indices: Int[Tensor, "pop_size"] = torch.cat(
             [survivor_indices, replacement_indices]
         )
 
@@ -1025,17 +1023,17 @@ class BatchedPopulation:
             self.fc2_bias_sigma = self.fc2_bias_sigma[new_indices].clone()
 
     def select_simple_es(
-        self, fitness: Float[Tensor, " pop_size"], minimize: bool = False
+        self, fitness: Float[Tensor, "pop_size"], minimize: bool = False
     ) -> None:
         """Simple ES selection: weighted combination of all networks (vectorized)."""
         # Standardize fitness
         if minimize:
-            fitness_std: Float[Tensor, " pop_size"] = (
+            fitness_std: Float[Tensor, "pop_size"] = (
                 -fitness - (-fitness).mean()
             ) / (fitness.std() + 1e-8)
         else:
             fitness_std = (fitness - fitness.mean()) / (fitness.std() + 1e-8)
-        weights: Float[Tensor, " pop_size"] = F.softmax(fitness_std, dim=0)
+        weights: Float[Tensor, "pop_size"] = F.softmax(fitness_std, dim=0)
 
         # Compute weighted average for each parameter tensor
         # weights: [pop_size] -> reshape for broadcasting
@@ -1053,7 +1051,7 @@ class BatchedPopulation:
         )
 
         w_fc1_bias: Float[Tensor, "pop_size 1"] = weights.view(-1, 1)
-        avg_fc1_bias: Float[Tensor, " hidden_size"] = (
+        avg_fc1_bias: Float[Tensor, "hidden_size"] = (
             w_fc1_bias * self.fc1_bias
         ).sum(dim=0)
         self.fc1_bias = (
@@ -1069,7 +1067,7 @@ class BatchedPopulation:
         )
 
         w_fc2_bias: Float[Tensor, "pop_size 1"] = weights.view(-1, 1)
-        avg_fc2_bias: Float[Tensor, " output_size"] = (
+        avg_fc2_bias: Float[Tensor, "output_size"] = (
             w_fc2_bias * self.fc2_bias
         ).sum(dim=0)
         self.fc2_bias = (
@@ -1086,7 +1084,7 @@ class BatchedPopulation:
                 .clone()
             )
 
-            avg_fc1_bias_sigma: Float[Tensor, " hidden_size"] = (
+            avg_fc1_bias_sigma: Float[Tensor, "hidden_size"] = (
                 w_fc1_bias * self.fc1_bias_sigma
             ).sum(dim=0)
             self.fc1_bias_sigma = (
@@ -1104,7 +1102,7 @@ class BatchedPopulation:
                 .clone()
             )
 
-            avg_fc2_bias_sigma: Float[Tensor, " output_size"] = (
+            avg_fc2_bias_sigma: Float[Tensor, "output_size"] = (
                 w_fc2_bias * self.fc2_bias_sigma
             ).sum(dim=0)
             self.fc2_bias_sigma = (
@@ -1114,12 +1112,12 @@ class BatchedPopulation:
             )
 
     def get_best_network_state(
-        self, fitness: Float[Tensor, " pop_size"], minimize: bool = False
+        self, fitness: Float[Tensor, "pop_size"], minimize: bool = False
     ) -> tuple[
         Float[Tensor, "hidden_size input_size"],
-        Float[Tensor, " hidden_size"],
+        Float[Tensor, "hidden_size"],
         Float[Tensor, "output_size hidden_size"],
-        Float[Tensor, " output_size"],
+        Float[Tensor, "output_size"],
     ]:
         """Get the parameters of the best performing network."""
         if minimize:
@@ -1134,7 +1132,7 @@ class BatchedPopulation:
         )
 
     def create_best_mlp(
-        self, fitness: Float[Tensor, " pop_size"], minimize: bool = False
+        self, fitness: Float[Tensor, "pop_size"], minimize: bool = False
     ) -> MLP:
         """Create an MLP from the best network's parameters."""
         fc1_w, fc1_b, fc2_w, fc2_b = self.get_best_network_state(
@@ -1179,9 +1177,9 @@ class BatchedPopulation:
 
 def train_neuroevolution(
     train_obs: Float[Tensor, "train_size input_size"],
-    train_act: Int[Tensor, " train_size"],
+    train_act: Int[Tensor, "train_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     config: ExperimentConfig,
@@ -1195,9 +1193,9 @@ def train_neuroevolution(
     train_obs_gpu: Float[Tensor, "train_size input_size"] = train_obs.to(
         DEVICE
     )
-    train_act_gpu: Int[Tensor, " train_size"] = train_act.to(DEVICE)
+    train_act_gpu: Int[Tensor, "train_size"] = train_act.to(DEVICE)
     test_obs_gpu: Float[Tensor, "test_size input_size"] = test_obs.to(DEVICE)
-    test_act_gpu: Int[Tensor, " test_size"] = test_act.to(DEVICE)
+    test_act_gpu: Int[Tensor, "test_size"] = test_act.to(DEVICE)
 
     # Sample a subset for fitness evaluation (use batch_size samples per generation)
     num_train: int = train_obs_gpu.shape[0]
@@ -1252,13 +1250,13 @@ def train_neuroevolution(
     gen: int = start_gen
     while True:
         # Sample batch for this generation
-        batch_indices: Int[Tensor, " eval_batch_size"] = torch.randperm(
+        batch_indices: Int[Tensor, "eval_batch_size"] = torch.randperm(
             num_train, device=DEVICE
         )[:eval_batch_size]
         batch_obs: Float[Tensor, "eval_batch_size input_size"] = train_obs_gpu[
             batch_indices
         ]
-        batch_act: Int[Tensor, " eval_batch_size"] = train_act_gpu[
+        batch_act: Int[Tensor, "eval_batch_size"] = train_act_gpu[
             batch_indices
         ]
 
@@ -1266,7 +1264,7 @@ def train_neuroevolution(
         population.mutate()
 
         # Evaluation (batched on GPU)
-        fitness: Float[Tensor, " pop_size"] = population.evaluate(
+        fitness: Float[Tensor, "pop_size"] = population.evaluate(
             batch_obs,
             batch_act,
             fitness_type,
@@ -1376,9 +1374,9 @@ def run_single_method(
     method_name: str,
     method_config: dict,
     train_obs: Float[Tensor, "train_size input_size"],
-    train_act: Int[Tensor, " train_size"],
+    train_act: Int[Tensor, "train_size"],
     test_obs: Float[Tensor, "test_size input_size"],
-    test_act: Int[Tensor, " test_size"],
+    test_act: Int[Tensor, "test_size"],
     input_size: int,
     output_size: int,
     config: ExperimentConfig,

@@ -43,16 +43,16 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
     def step(
         self: "BaseClassificationLitModule",
         data: tuple[
-            Float[Tensor, " batch_size *x_dim"],
-            Int[Tensor, " batch_size"],
+            Float[Tensor, "batch_size *x_dim"],
+            Int[Tensor, "batch_size"],
         ],
         stage: An[str, one_of("train", "val", "test")],
-    ) -> Float[Tensor, " "]:
-        x: Float[Tensor, " batch_size *x_dim"] = data[0]
-        y: Int[Tensor, " batch_size"] = data[1]
-        logits: Float[Tensor, " batch_size num_classes"] = self.nnmodule(x)
-        y_hat: Int[Tensor, " batch_size"] = torch.argmax(input=logits, dim=1)
-        accuracy: Float[Tensor, " "] = self.accuracy(preds=y_hat, target=y)
+    ) -> Float[Tensor, ""]:
+        x: Float[Tensor, "batch_size *x_dim"] = data[0]
+        y: Int[Tensor, "batch_size"] = data[1]
+        logits: Float[Tensor, "batch_size num_classes"] = self.nnmodule(x)
+        y_hat: Int[Tensor, "batch_size"] = torch.argmax(input=logits, dim=1)
+        accuracy: Float[Tensor, ""] = self.accuracy(preds=y_hat, target=y)
         self.log(name=f"{stage}/acc", value=accuracy)
         self.save_wandb_data(stage, x, y, y_hat, logits)
         return f.cross_entropy(input=logits, target=y)
@@ -61,10 +61,10 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
     def save_wandb_data(
         self: "BaseClassificationLitModule",
         stage: An[str, one_of("train", "val", "test")],
-        x: Float[Tensor, " batch_size *x_dim"],
-        y: Int[Tensor, " batch_size"],
-        y_hat: Int[Tensor, " batch_size"],
-        logits: Float[Tensor, " batch_size num_classes"],
+        x: Float[Tensor, "batch_size *x_dim"],
+        y: Int[Tensor, "batch_size"],
+        y_hat: Int[Tensor, "batch_size"],
+        logits: Float[Tensor, "batch_size num_classes"],
     ) -> None:
         data = (
             self.wandb_train_data if stage == "train" else self.wandb_val_data

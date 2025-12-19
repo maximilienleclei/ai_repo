@@ -125,10 +125,10 @@ class BaseCAM(nn.Module, ABC):
 
     def predict_sequence_features_and_compute_loss(
         self: "BaseCAM",
-        conditioning_sequence_features: Float[Tensor, " BS SL NCF"],
-        target_sequence_features: Float[Tensor, " BS SL NTF"],
+        conditioning_sequence_features: Float[Tensor, "BS SL NCF"],
+        target_sequence_features: Float[Tensor, "BS SL NTF"],
         mode: An[str, one_of("fitting", "inference")],
-    ) -> tuple[Float[Tensor, " BS SL NTF"], Float[Tensor, " "]]:
+    ) -> tuple[Float[Tensor, "BS SL NTF"], Float[Tensor, ""]]:
         predicted_sequence_logits, predicted_sequence_features = (
             self.predict_sequence_logits_and_features_fitting(
                 conditioning_sequence_features,
@@ -139,7 +139,7 @@ class BaseCAM(nn.Module, ABC):
                 conditioning_sequence_features,
             )
         )
-        loss: Float[Tensor, " "] = self.compute_loss(
+        loss: Float[Tensor, ""] = self.compute_loss(
             predicted_sequence_logits,
             target_sequence_features,
         )
@@ -148,22 +148,22 @@ class BaseCAM(nn.Module, ABC):
     @abstractmethod
     def compute_loss(
         self: "BaseCAM",
-        predicted_sequence_logits: Float[Tensor, " BS SL NOL"],
-        target_sequence_features: Float[Tensor, " BS SL NTF"],
-    ) -> Float[Tensor, " "]: ...
+        predicted_sequence_logits: Float[Tensor, "BS SL NOL"],
+        target_sequence_features: Float[Tensor, "BS SL NTF"],
+    ) -> Float[Tensor, ""]: ...
 
     @abstractmethod
     def predict_sequence_logits_and_features_fitting(
         self: "BaseCAM",
-        conditioning_sequence_features: Float[Tensor, " BS SL NCF"],
-        target_sequence_features: Float[Tensor, " BS SL NTF"],
-    ) -> tuple[Float[Tensor, " BS SL NOL"], Float[Tensor, " BS SL NTF"]]: ...
+        conditioning_sequence_features: Float[Tensor, "BS SL NCF"],
+        target_sequence_features: Float[Tensor, "BS SL NTF"],
+    ) -> tuple[Float[Tensor, "BS SL NOL"], Float[Tensor, "BS SL NTF"]]: ...
 
     def predict_sequence_logits_fitting(
         self: "BaseCAM",
-        conditioning_sequence_features: Float[Tensor, " BS SL NCF"],
-        target_sequence_features: Float[Tensor, " BS SL NTF"],
-    ) -> Float[Tensor, " BS SL NOL"]:
+        conditioning_sequence_features: Float[Tensor, "BS SL NCF"],
+        target_sequence_features: Float[Tensor, "BS SL NTF"],
+    ) -> Float[Tensor, "BS SL NOL"]:
         """`conditioning_sequence_features` is concatenated with
         `target_sequence_features` (if `teacher_forcing`) or a
         zeroed-out tensor of `target_sequence_features`'s shape before
@@ -178,7 +178,7 @@ class BaseCAM(nn.Module, ABC):
                 Tensor,
                 " BS SLM1 NTF",
             ] = target_sequence_features[:, :-1]
-            shifted_sequence_target_features: Float[Tensor, " BS SL NTF"] = (
+            shifted_sequence_target_features: Float[Tensor, "BS SL NTF"] = (
                 torch.cat(
                     (
                         single_timestep_zeroed_target_features,
@@ -187,35 +187,35 @@ class BaseCAM(nn.Module, ABC):
                     dim=1,
                 )
             )
-        x: Float[Tensor, " BS SL NTF"] = (
+        x: Float[Tensor, "BS SL NTF"] = (
             shifted_sequence_target_features
             if self.config.teacher_forcing
             else torch.zeros_like(target_sequence_features)
         )
-        x: Float[Tensor, " BS SL NIF"] = torch.cat(
+        x: Float[Tensor, "BS SL NIF"] = torch.cat(
             (x, conditioning_sequence_features),
             dim=-1,
         )
 
         if hasattr(self, "proj_in"):
-            x: Float[Tensor, " BS SL HS"] = self.proj_in(x)
+            x: Float[Tensor, "BS SL HS"] = self.proj_in(x)
 
         if isinstance(self.model, FNN):
-            x: Float[Tensor, " BS SL NOL"] = self.model(x)
+            x: Float[Tensor, "BS SL NOL"] = self.model(x)
         elif isinstance(self.model, Mamba | Mamba2):
-            x: Float[Tensor, " BS SL HS"] = self.model(x)
+            x: Float[Tensor, "BS SL HS"] = self.model(x)
         else:  # isinstance(self.model, RNN | LSTM):
-            x: Float[Tensor, " BS SL HS"] = self.model(x)[0]
+            x: Float[Tensor, "BS SL HS"] = self.model(x)[0]
 
         if hasattr(self, "proj_out"):
-            x: Float[Tensor, " BS SL NOL"] = self.proj_out(x)
+            x: Float[Tensor, "BS SL NOL"] = self.proj_out(x)
 
         return x
 
     def predict_sequence_logits_and_features_inference(
         self: "BaseCAM",
-        conditioning_sequence_features: Float[Tensor, " BS SL NCF"],
-    ) -> tuple[Float[Tensor, " BS SL NOL"], Float[Tensor, " BS SL NTF"]]:
+        conditioning_sequence_features: Float[Tensor, "BS SL NCF"],
+    ) -> tuple[Float[Tensor, "BS SL NOL"], Float[Tensor, "BS SL NTF"]]:
         """Passes `conditioning_sequence_features` through the
         model one timestep at a time in order to predict the sequence
         of logits and features.
@@ -269,8 +269,8 @@ class BaseCAM(nn.Module, ABC):
     @abstractmethod
     def predict_timestep_features_inference(
         self: "BaseCAM",
-        predicted_timestep_logits: Float[Tensor, " BS 1 NOL"],
-    ) -> Float[Tensor, " BS 1 NTF"]: ...
+        predicted_timestep_logits: Float[Tensor, "BS 1 NOL"],
+    ) -> Float[Tensor, "BS 1 NTF"]: ...
 
     def predict_timestep_logits_inference(
         self: "BaseCAM",
@@ -278,13 +278,13 @@ class BaseCAM(nn.Module, ABC):
             Tensor,
             " BS 1 NTF",
         ],
-        conditioning_timestep_features: Float[Tensor, " BS 1 NCF"],
-    ) -> Float[Tensor, " BS 1 NOL"]:
+        conditioning_timestep_features: Float[Tensor, "BS 1 NCF"],
+    ) -> Float[Tensor, "BS 1 NOL"]:
         """`previous_predicted_timestep_features_or_zeroes` and
         `conditioning_timestep_features` are concatenated before being
         passed through the model.
         """
-        x: Float[Tensor, " BS 1 NIF"] = torch.cat(
+        x: Float[Tensor, "BS 1 NIF"] = torch.cat(
             (
                 previous_predicted_timestep_features_or_zeroes,
                 conditioning_timestep_features,
@@ -293,7 +293,7 @@ class BaseCAM(nn.Module, ABC):
         )
 
         if hasattr(self, "proj_in"):
-            x: Float[Tensor, " BS 1 HS"] = self.proj_in(x)
+            x: Float[Tensor, "BS 1 HS"] = self.proj_in(x)
 
         if isinstance(self.model, FNN):
             x = self.model(x)
@@ -304,7 +304,7 @@ class BaseCAM(nn.Module, ABC):
         if isinstance(self.model, RNN | LSTM):
             x, self.cache = self.model(x, self.cache)
         if hasattr(self, "proj_out"):
-            x: Float[Tensor, " BS 1 NOL"] = self.proj_out(x)
+            x: Float[Tensor, "BS 1 NOL"] = self.proj_out(x)
 
         return x
 
